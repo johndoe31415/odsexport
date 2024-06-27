@@ -25,4 +25,4 @@ from .Cell import Formula
 from .CellRange import CellRange
 from .ODSDocument import ODSDocument
 
-VERSION = "0.0.1rc0"
+VERSION = "0.0.1"
