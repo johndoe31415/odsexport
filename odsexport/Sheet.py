@@ -30,10 +30,10 @@ class SheetWriter():
 		Row = enum.auto()
 		Column = enum.auto()
 
-	def __init__(self, sheet: "Sheet", position: tuple[int, int], mode: "Mode" = Mode.Row):
-		self._sheet = sheet
-		self._initial_position = tuple(position)
-		self._position = list(position)
+	def __init__(self, start_cell: "Cell", mode: "Mode" = Mode.Row):
+		self._sheet = start_cell.sheet
+		self._initial_position = tuple(start_cell.position)
+		self._position = list(start_cell.position)
 		self._last_cursor = None
 		self._mode = mode
 
@@ -87,8 +87,8 @@ class SheetWriter():
 			self.cursor.set(value)
 			if style is not None:
 				self.cursor.style(style)
+			self._last_cursor = self.cursor
 			self.skip()
-		self._last_cursor = self.cursor
 		return self
 
 	def write_many(self, values: list[str | float], style: "DataStyle | CellStyle | None" = None):
@@ -166,10 +166,10 @@ class Sheet():
 	def apply_conditional_format(self, conditional_format: "ConditionalFormat"):
 		self._conditional_formats.append(conditional_format)
 
-	def writer(self, position: tuple[int, int] | None = None):
-		if position is None:
-			position = (0, 0)
-		return SheetWriter(self, position)
+	def writer(self, start_cell: Cell = None, mode: "Mode" = SheetWriter.Mode.Row):
+		if start_cell is None:
+			start_cell = self[(0, 0)]
+		return SheetWriter(start_cell, mode = mode)
 
 	def _parse_cell_position(self, cell_position_str: str):
 		rematch = self._CELL_IDENTIFIER_RE.fullmatch(cell_position_str)
