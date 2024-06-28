@@ -35,3 +35,14 @@ class Formula():
 	def if_then_else(cls, if_condition: str, then_value: str, else_value: str):
 		return f"IF({if_condition};{then_value};{else_value})"
 
+	@classmethod
+	def _round_positive_value_half_to_even(cls, value: str, digits: int = 0):
+		return cls.if_then_else(
+				if_condition = f"AND(ISEVEN(({value})*10^{digits});MOD(({value})*10^{digits};1)<=0.5)",
+				then_value = f"ROUNDDOWN({value};{digits})",
+				else_value = f"ROUND({value};{digits})",
+		)
+
+	@classmethod
+	def round_half_to_even(cls, value: str, digits: int = 0):
+		return f"(SIGN({value})*{cls._round_positive_value_half_to_even(f'ABS({value})', digits = digits)})"

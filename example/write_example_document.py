@@ -125,10 +125,26 @@ def create_simple_sheet(doc):
 		row = [ "Value:", i, i * 3.1415, f"{i:#04x}", odsexport.Formula(f"B{i+1}*4") ]
 		writer.writerow(row)
 
+def create_internal_function_sheet(doc):
+	sheet = doc.new_sheet("High-level functions")
+	writer = sheet.writer()
+	writer.writerow([ "Value", "ROUND(x; 1)", "ROUND_HALF_TO_EVEN(x; 1)", "Difference" ])
+	for i in range(121):
+		value = (i - 60) / 100
+
+		writer.write(value)
+		cell = writer.last_cursor
+
+		writer.write(odsexport.Formula(f"ROUND({cell};1)"))
+		writer.write(odsexport.Formula(odsexport.Formula.round_half_to_even(cell, 1)))
+		writer.write(odsexport.Formula(f"{writer.last_cursor.left}-{writer.last_cursor}"))
+		writer.advance()
+
 
 doc = odsexport.ODSDocument()
 reference_cell = create_format_sheet(doc)
 create_formula_sheet(doc, reference_cell)
 create_conditional_formatting_sheet(doc)
 create_simple_sheet(doc)
+create_internal_function_sheet(doc)
 doc.write("example_document.ods")
