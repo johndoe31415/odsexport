@@ -20,57 +20,85 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import re
+import enum
 import string
 from .Cell import Cell
 from .Style import BorderStyle
 
 class SheetWriter():
-	def __init__(self, sheet: "Sheet", position: tuple[int, int]):
+	class Mode(enum.IntEnum):
+		Row = enum.auto()
+		Column = enum.auto()
+
+	def __init__(self, sheet: "Sheet", position: tuple[int, int], mode: "Mode" = Mode.Row):
 		self._sheet = sheet
 		self._initial_position = tuple(position)
 		self._position = list(position)
 		self._last_cursor = None
+		self._mode = mode
 
 	@property
 	def cursor(self):
 		return self._sheet[tuple(self._position)]
 
+	@cursor.setter
+	def cursor(self, cell: "Cell"):
+		"""Current cursor, i.e., next cell data will be written to."""
+		self._initial_position = tuple(cell.position)
+		self._position = list(cell.position)
+		self._last_cursor = None
+
+	@property
+	def mode(self):
+		return self._mode
+
+	@mode.setter
+	def mode(self, mode: "Mode"):
+		self._mode = mode
+
 	@property
 	def last_cursor(self):
+		"""Last cursor that was written data to (i.e., not affected by
+		'advance' operation)."""
 		return self._last_cursor
 
 	def skip(self):
-		self._position[0] += 1
-		return self
-
-	def write(self, value: str | float, style: "DataStyle | CellStyle | None" = None):
-		self.cursor.set(value)
-		if style is not None:
-			self.cursor.style(style)
-		self._last_cursor = self.cursor
-		self._position[0] += 1
-		return self
-
-	def write_many(self, values: list[str | float], style: "DataStyle | CellStyle | None" = None):
-		for value in values:
-			self.write(value, style = style)
+		"""Skip to next cell in current row/column. Does not affect
+		'last_cursor' value."""
+		if self._mode == self.Mode.Row:
+			self._position[0] += 1
+		else:
+			self._position[1] += 1
 		return self
 
 	def advance(self):
-		self._position[0] = self._initial_position[0]
-		self._position[1] += 1
+		"""Advance to next row in row mode or to next column in column mode."""
+		if self._mode == self.Mode.Row:
+			self._position[0] = self._initial_position[0]
+			self._position[1] += 1
+		else:
+			self._position[0] += 1
+			self._position[1] = self._initial_position[1]
 		return self
 
-	def writerow(self, row: list[str | float], style: "DataStyle | CellStyle | None" = None):
-		for (xoffset, value) in enumerate(row):
-			position = (self._position[0] + xoffset, self._position[1])
-			cell = self._sheet[position]
-			cell.set(value)
+	def write(self, *values: str | float, style: "DataStyle | CellStyle | None" = None):
+		"""Write some value(s) and style it/them accordingly."""
+		for value in values:
+			self.cursor.set(value)
 			if style is not None:
-				cell.style(style)
-		self._last_cursor = cell
-		self.advance()
+				self.cursor.style(style)
+			self.skip()
+		self._last_cursor = self.cursor
 		return self
+
+	def write_many(self, values: list[str | float], style: "DataStyle | CellStyle | None" = None):
+		"""Write many values without advancing."""
+		return self.write(*values, style = style)
+
+	def writerow(self, row: list[str | float], style: "DataStyle | CellStyle | None" = None):
+		"""Write a complete row and advance to next row (in row mode) or write
+		a complete column and advance to next column (in column mode)."""
+		return self.write(*row, style = style).advance()
 
 class Sheet():
 	_CELL_IDENTIFIER_RE = re.compile(r"\$?(?P<col>[A-Z]+)\$?(?P<row>\d+)")
