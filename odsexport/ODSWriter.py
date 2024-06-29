@@ -360,6 +360,13 @@ class ODSWriter():
 				base_cell = conditional_format.base_cell if (conditional_format.base_cell is not None) else conditional_format.target.src
 				cond_node.setAttributeNS("calcext", "calcext:base-cell-address", format(base_cell, "a"))
 
+		database_ranges_node = spreadsheet_node.appendChild(self.content_document.createElement("table:database-ranges"))
+		for (db_no, data_table) in enumerate(sheet.data_tables):
+			database_range_node = database_ranges_node.appendChild(self.content_document.createElement("table:database-range"))
+			database_range_node.setAttributeNS("table", "table:name", f"__db_{db_no}")
+			database_range_node.setAttributeNS("table", "table:target-range-address", format(data_table.cell_range, "a"))
+			database_range_node.setAttributeNS("table", "table:display-filter-buttons", "true")
+
 	def _serialize_metadata(self):
 		now = datetime.datetime.now()
 		metadata = {

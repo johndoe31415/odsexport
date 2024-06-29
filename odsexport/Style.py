@@ -96,3 +96,7 @@ class RowStyle():
 class ColStyle():
 	hidden: bool = False
 	width: str | None = None
+
+@dataclasses.dataclass(eq = True, frozen = True)
+class DataTable():
+	cell_range: "CellRange"

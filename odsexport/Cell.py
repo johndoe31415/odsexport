@@ -111,6 +111,14 @@ class Cell():
 		self.style(dataclasses.replace(self.current_style, border = border_style))
 		return self
 
+	def make_range(self, width: int = 1, height: int = 1):
+		assert(width != 0)
+		assert(height != 0)
+		x_offset = (width - 1) if (width > 0) else (width + 1)
+		y_offset = (height - 1) if (height > 0) else (height + 1)
+		last_cell = self.rel(x_offset = x_offset, y_offset = y_offset)
+		return CellRange(self, last_cell)
+
 	def __format__(self, format_string: str):
 		return self.cell_id.__format__(format_string)
 
@@ -119,3 +127,6 @@ class Cell():
 
 	def __lt__(self, other):
 		return (self.sheet.name, self.position) < (other.sheet.name, other.position)
+
+	def __repr__(self):
+		return format(self)

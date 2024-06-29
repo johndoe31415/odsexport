@@ -38,6 +38,10 @@ class SheetWriter():
 		self._mode = mode
 
 	@property
+	def initial_cursor(self):
+		return self._sheet[self._initial_position]
+
+	@property
 	def cursor(self):
 		return self._sheet[tuple(self._position)]
 
@@ -113,6 +117,7 @@ class Sheet():
 		self._col_style = { }
 		self._row_style = { }
 		self._conditional_formats = [ ]
+		self._data_tables = [ ]
 
 	@property
 	def doc(self):
@@ -134,6 +139,10 @@ class Sheet():
 	@property
 	def conditional_formats(self):
 		return self._conditional_formats
+
+	@property
+	def data_tables(self):
+		return self._data_tables
 
 	@property
 	def iter_rows(self):
@@ -165,6 +174,11 @@ class Sheet():
 
 	def apply_conditional_format(self, conditional_format: "ConditionalFormat"):
 		self._conditional_formats.append(conditional_format)
+		return self
+
+	def add_data_table(self, data_table: "DataTableDefinition"):
+		self._data_tables.append(data_table)
+		return self
 
 	def writer(self, start_cell: Cell = None, mode: "Mode" = SheetWriter.Mode.Row):
 		if start_cell is None:

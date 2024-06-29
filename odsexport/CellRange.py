@@ -59,6 +59,11 @@ class CellRange():
 	def dest(self):
 		return self._dest_cell
 
+	def rel(self, x_offset: int = 0, y_offset: int = 0):
+		src = self.src.rel(x_offset = x_offset, y_offset = y_offset)
+		dest = self.dest.rel(x_offset = x_offset, y_offset = y_offset)
+		return CellRange(src, dest)
+
 	@property
 	def width(self):
 		return self.dest.x - self.src.x + 1
@@ -89,6 +94,29 @@ class CellRange():
 	@property
 	def is_range(self):
 		return self._src_cell != self._dest_cell
+
+	def sub_range(self, x_offset: int = 0, y_offset: int = 0, width: int | None = None, height: int | None = None):
+		if width is None:
+			new_width = self.width
+		elif width > 0:
+			new_width = width
+		else:
+			new_width = self.width + width
+		if new_width < 1:
+			raise ValueError(f"Width specification failure, new width would be {new_width} cells.")
+
+		if height is None:
+			new_height = self.height
+		elif height > 0:
+			new_height = height
+		else:
+			new_height = self.height + height
+		if new_height < 1:
+			raise ValueError(f"Height specification failure, new height would be {new_height} cells.")
+
+		new_src = self.src.rel(x_offset = x_offset, y_offset = y_offset)
+		new_dest = new_src.rel(x_offset = new_width - 1, y_offset = new_height - 1)
+		return CellRange(new_src, new_dest)
 
 	def __iter__(self):
 		(min_x, min_y) = self.src.position

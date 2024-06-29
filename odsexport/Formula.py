@@ -24,6 +24,8 @@ from .Enums import CellValueType
 
 @dataclasses.dataclass
 class Formula():
+	__SUBTOTAL_IDS = { name: fnc_id for (fnc_id, name) in enumerate([ "AVERAGE", "COUNT", "COUNTA", "MAX", "MIN", "PRODUCT", "STDEV", "STDEVP", "SUM", "VAR", "VARP" ], 1) }
+
 	value: str
 	value_type: CellValueType = CellValueType.Float
 
@@ -46,3 +48,34 @@ class Formula():
 	@classmethod
 	def round_half_to_even(cls, value: str, digits: int = 0):
 		return f"(SIGN({value})*{cls._round_positive_value_half_to_even(f'ABS({value})', digits = digits)})"
+
+	@classmethod
+	def subtotal(cls, function_name: str, cell_range: str):
+		return f"SUBTOTAL({cls.__SUBTOTAL_IDS[function_name]};{cell_range})"
+
+	@classmethod
+	def subtotal_variant(cls, function_name: str, cell_range: str, subtotal = False):
+		if not subtotal:
+			return f"{function_name}({cell_range})"
+		else:
+			return cls.subtotal(function_name, cell_range)
+
+	@classmethod
+	def average(cls, cell_range: str, subtotal = False):
+		return cls.subtotal_variant("AVERAGE", cell_range, subtotal = subtotal)
+
+	@classmethod
+	def count(cls, cell_range: str, subtotal = False):
+		return cls.subtotal_variant("COUNT", cell_range, subtotal = subtotal)
+
+	@classmethod
+	def sum(cls, cell_range: str, subtotal = False):
+		return cls.subtotal_variant("SUM", cell_range, subtotal = subtotal)
+
+	@classmethod
+	def average_when_have_values(cls, cell_range: str, subtotal = False):
+		return cls.if_then_else(
+			if_condition = f"{cls.count(cell_range, subtotal = subtotal)}>0",
+			then_value = cls.average(cell_range, subtotal = subtotal),
+			else_value = "",
+		)

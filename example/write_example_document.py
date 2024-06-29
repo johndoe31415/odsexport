@@ -20,6 +20,7 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import random
 import odsexport
 
 def create_format_sheet(doc):
@@ -140,6 +141,27 @@ def create_internal_function_sheet(doc):
 		writer.write(odsexport.Formula(f"{writer.last_cursor.left}-{writer.last_cursor}"))
 		writer.advance()
 
+def create_data_table(doc):
+	sheet = doc.new_sheet("Data table")
+	writer = sheet.writer()
+
+	last_names = [ "Smith", "Johnson", "Williams", "Brown", "Jones", "Rodriguez", "Miller", "Davis" ]
+	first_names = [ "Mary", "Patricia", "Linda", "Emma", "Jacob", "Michael", "Thomas" ]
+	adjectives = [ "Brown", "Yellow", "Pink", "Fast", "Ugly" ]
+	team_nouns = [ "Bears", "Turds", "Skunks", "Flamingos" ]
+
+	writer.writerow([ "Last name", "First name", "Team", "Score" ])
+	for _ in range(100):
+		writer.writerow([ random.choice(last_names), random.choice(first_names), f"{random.choice(adjectives)} {random.choice(team_nouns)}", random.randint(0, 50) ])
+
+	cell_range = odsexport.CellRange(writer.initial_cursor, writer.last_cursor)
+	sheet.add_data_table(odsexport.DataTable(cell_range = cell_range))
+
+	data_range = cell_range.sub_range(x_offset = 3, y_offset = 1, height = -1, width = 1)
+
+	writer.cursor = writer.cursor.rel(x_offset = 2, y_offset = 1)
+	writer.writerow([ "Average:", odsexport.Formula(odsexport.Formula.average_when_have_values(data_range, subtotal = True)) ])
+	writer.writerow([ "Sum:", odsexport.Formula(odsexport.Formula.sum(data_range, subtotal = True)) ])
 
 doc = odsexport.ODSDocument()
 reference_cell = create_format_sheet(doc)
@@ -147,4 +169,5 @@ create_formula_sheet(doc, reference_cell)
 create_conditional_formatting_sheet(doc)
 create_simple_sheet(doc)
 create_internal_function_sheet(doc)
+create_data_table(doc)
 doc.write("example_document.ods")

@@ -20,7 +20,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 from .Enums import HAlign, VAlign, ConditionType
-from .Style import Font, DataStyle, CellStyle, RowStyle, ColStyle, BorderStyle, LineStyle, ConditionalFormat, FormatCondition
+from .Style import Font, DataStyle, CellStyle, RowStyle, ColStyle, BorderStyle, LineStyle, ConditionalFormat, FormatCondition, DataTable
 from .Cell import Formula
 from .CellRange import CellRange
 from .ODSDocument import ODSDocument
