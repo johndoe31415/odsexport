@@ -21,6 +21,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import random
+import datetime
 import odsexport
 
 def create_format_sheet(doc):
@@ -63,6 +64,7 @@ def create_format_sheet(doc):
 
 def create_formula_sheet(doc, reference_cell):
 	sheet = doc.new_sheet("Formulas")
+	sheet.style_column(1, odsexport.ColStyle(width = "5cm"))
 	bold_style = odsexport.CellStyle(font = odsexport.Font(bold = True))
 
 	sheet.style_column(0, odsexport.ColStyle(width = "4cm"))
@@ -81,12 +83,24 @@ def create_formula_sheet(doc, reference_cell):
 		left = left.down
 		right = right.down
 		left.set(f"Rounded with {num} digits:").style(bold_style)
-		right.set_formula(f"{cell}").style(odsexport.CellStyle(data_style = odsexport.DataStyle.fixed_decimal_places(num)))
+		right.set_formula(f"{cell}").style(odsexport.CellStyle(data_style = odsexport.DataStyleNumber.fixed(num)))
+
 	for num in range(3):
 		left = left.down
 		right = right.down
 		left.set(f"Percent with {num} digits:").style(bold_style)
-		right.set_formula(f"{cell2}").style(odsexport.CellStyle(data_style = odsexport.DataStyle.percent_fixed_decimal_places(num)))
+		right.set_formula(f"{cell2}").style(odsexport.CellStyle(data_style = odsexport.DataStylePercent.fixed(num)))
+
+	now = datetime.datetime.now()
+	left = left.down
+	right = right.down
+	left.set("Datetime as ISO:").style(bold_style)
+	right.set(now).style(odsexport.CellStyle(data_style = odsexport.DataStyleDateTime.isoformat()))
+
+	left = left.down
+	right = right.down
+	left.set("Datetime as German:").style(bold_style)
+	right.set(now).style(odsexport.CellStyle(data_style = odsexport.DataStyleDateTime(parts = ("%d", ".", "%m", ".", "%Y", " ", "%H", ":", "%M"))))
 
 def create_conditional_formatting_sheet(doc):
 	sheet = doc.new_sheet("Conditional Formatting")

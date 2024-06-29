@@ -36,10 +36,9 @@ class CellValueType(enum.Enum):
 class LineType(enum.Enum):
 	Solid = "solid"
 
-class NumberStyle(enum.Enum):
-	Number = "number"
-	Percent = "percentage"
-
 class ConditionType(enum.IntEnum):
 	CellValue = enum.auto()
 	Formula = enum.auto()
+
+class DateStyle(enum.IntEnum):
+	IsoDate = enum.auto()

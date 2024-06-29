@@ -20,7 +20,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import dataclasses
-from .Enums import HAlign, VAlign, LineType, ConditionType, NumberStyle
+from .Enums import HAlign, VAlign, LineType, ConditionType
 
 @dataclasses.dataclass(eq = True, frozen = True)
 class Font():
@@ -30,21 +30,40 @@ class Font():
 	color: str | None = None
 	name: str | None = None
 
+class DataStyle(): pass
+
 @dataclasses.dataclass(eq = True, frozen = True)
-class DataStyle():
+class DataStyleNumber(DataStyle):
 	min_integer_digits: int | None = None
 	decimal_places: int | None = None
 	min_decimal_places: int | None = None
-	number_style: NumberStyle = NumberStyle.Number
+	prefix: str | None = None
 	suffix: str | None = None
 
 	@classmethod
-	def fixed_decimal_places(cls, count: int):
+	def fixed(cls, count: int):
 		return cls(min_integer_digits = 1, decimal_places = count, min_decimal_places = count)
 
+@dataclasses.dataclass(eq = True, frozen = True)
+class DataStylePercent(DataStyle):
+	min_integer_digits: int | None = None
+	decimal_places: int | None = None
+	min_decimal_places: int | None = None
+	prefix: str | None = None
+	suffix: str | None = " %"
+
 	@classmethod
-	def percent_fixed_decimal_places(cls, count: int):
-		return cls(number_style = NumberStyle.Percent, suffix = " %", min_integer_digits = 1, decimal_places = count, min_decimal_places = count)
+	def fixed(cls, count: int):
+		return cls(min_integer_digits = 1, decimal_places = count, min_decimal_places = count)
+
+@dataclasses.dataclass(eq = True, frozen = True)
+class DataStyleDateTime(DataStyle):
+	parts: tuple[str]
+
+	@classmethod
+	def isoformat(cls):
+		return cls(parts = ("%Y", "-", "%m", "-", "%d", " ", "%H", ":", "%M", ":", "%S"))
+
 
 @dataclasses.dataclass(eq = True, frozen = True)
 class LineStyle():

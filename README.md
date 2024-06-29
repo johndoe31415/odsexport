@@ -2,8 +2,8 @@
 odsexport is a Python-native library to create ODS (Open Document Spreadsheet)
 documents. In other words, it lets you script creating "Excel" sheets from
 within Python. The focus is on providing a feature-rich document creation
-abstraction: all kinds of cell formatting options (data and style formatting)
-are supported, column and row formatting is supported
+abstraction: all kinds of cell formatting options (data and style formatting,
+including datetimes) are supported, column and row formatting is supported
 (width/height/visibility), conditional formatting, and auto filtering is
 implemented as well. odsexport is intended to make it easy to use ODS documents
 as a data sink while creating documents that are mutable (i.e., recalculate

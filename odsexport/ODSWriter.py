@@ -27,6 +27,7 @@ import odsexport
 from .XMLNode import XMLNode
 from .Cell import Formula
 from .Enums import ConditionType
+from .Style import DataStyleNumber, DataStylePercent, DataStyleDateTime
 
 class ODSWriter():
 	_NAMESPACES = {
@@ -224,20 +225,55 @@ class ODSWriter():
 			property_node.setAttributeNS("style", "style:column-width", col_style.width)
 
 	def _serialize_data_style(self, data_style: "DataStyle", style_class_name: str):
-		style_node = self.styles.appendChild(self.styles_document.createElement(f"number:{data_style.number_style.value}-style"))
-		style_node.setAttributeNS("style", "style:name", style_class_name)
+		if isinstance(data_style, (DataStyleNumber, DataStylePercent)):
+			style_type = "number" if isinstance(data_style, DataStyleNumber) else "percentage"
+			style_node = self.styles.appendChild(self.styles_document.createElement(f"number:{style_type}-style"))
+			style_node.setAttributeNS("style", "style:name", style_class_name)
 
-		number_node = style_node.appendChild(self.styles_document.createElement("number:number"))
-		if data_style.decimal_places is not None:
-			number_node.setAttributeNS("number", "number:decimal-places", str(data_style.decimal_places))
-		if data_style.min_decimal_places is not None:
-			number_node.setAttributeNS("number", "number:min-decimal-places", str(data_style.min_decimal_places))
-		if data_style.min_integer_digits is not None:
-			number_node.setAttributeNS("number", "number:min-integer-digits", str(data_style.min_integer_digits))
+			if data_style.prefix is not None:
+				text = style_node.appendChild(style_node.ownerDocument.createElement("number:text"))
+				text.appendChild(style_node.ownerDocument.createTextNode(data_style.prefix))
 
-		if data_style.suffix is not None:
-			text = style_node.appendChild(style_node.ownerDocument.createElement("number:text"))
-			text.appendChild(style_node.ownerDocument.createTextNode(data_style.suffix))
+			number_node = style_node.appendChild(self.styles_document.createElement("number:number"))
+			if data_style.decimal_places is not None:
+				number_node.setAttributeNS("number", "number:decimal-places", str(data_style.decimal_places))
+			if data_style.min_decimal_places is not None:
+				number_node.setAttributeNS("number", "number:min-decimal-places", str(data_style.min_decimal_places))
+			if data_style.min_integer_digits is not None:
+				number_node.setAttributeNS("number", "number:min-integer-digits", str(data_style.min_integer_digits))
+
+			if data_style.suffix is not None:
+				text = style_node.appendChild(style_node.ownerDocument.createElement("number:text"))
+				text.appendChild(style_node.ownerDocument.createTextNode(data_style.suffix))
+		elif isinstance(data_style, DataStyleDateTime):
+			style_node = self.styles.appendChild(self.styles_document.createElement(f"number:date-style"))
+			style_node.setAttributeNS("style", "style:name", style_class_name)
+			style_node.setAttributeNS("number", "number:automatic-order", "true")
+			style_node.setAttributeNS("number", "number:format-source", "language")
+			for part in data_style.parts:
+				match part:
+					case "%Y":
+						style_node.appendChild(style_node.ownerDocument.createElement("number:year")).setAttributeNS("number", "number:style", "long")
+
+					case "%m":
+						style_node.appendChild(style_node.ownerDocument.createElement("number:month")).setAttributeNS("number", "number:style", "long")
+
+					case "%d":
+						style_node.appendChild(style_node.ownerDocument.createElement("number:day")).setAttributeNS("number", "number:style", "long")
+
+					case "%H":
+						style_node.appendChild(style_node.ownerDocument.createElement("number:hours")).setAttributeNS("number", "number:style", "long")
+
+					case "%M":
+						style_node.appendChild(style_node.ownerDocument.createElement("number:minutes")).setAttributeNS("number", "number:style", "long")
+
+					case "%S":
+						style_node.appendChild(style_node.ownerDocument.createElement("number:seconds")).setAttributeNS("number", "number:style", "long")
+
+					case _:
+						style_node.appendChild(style_node.ownerDocument.createElement("number:text")).appendChild(style_node.ownerDocument.createTextNode(part))
+		else:
+			raise ValueError(f"Unknown data style class passed of type {type(data_style)}: {data_style}")
 
 	def _serialize_cell_style(self, style: "CellStyle", style_class_name: str, style_node: "Element"):
 		if style.data_style is not None:
@@ -314,6 +350,10 @@ class ODSWriter():
 		elif isinstance(cell.content, Formula):
 			cell_node.setAttributeNS("table", "table:formula", f"of:={cell.content.value}")
 			cell_node.setAttributeNS("calcext", "calcext:value-type", cell.content.value_type.value)
+		elif isinstance(cell.content, datetime.datetime):
+			cell_node.setAttributeNS("office", "office:value-type", "date")
+			cell_node.setAttributeNS("calcext", "calcext:value-type", "date")
+			cell_node.setAttributeNS("office", "office:date-value", cell.content.strftime("%Y-%m-%dT%H:%M:%S"))
 		else:
 			raise ValueError(f"Unknown cell type of class \"{type(cell.content).__name__}\": {cell.content}")
 
