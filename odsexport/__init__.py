@@ -24,5 +24,6 @@ from .Style import Font, DataStyle, CellStyle, RowStyle, ColStyle, BorderStyle, 
 from .Cell import Formula
 from .CellRange import CellRange
 from .ODSDocument import ODSDocument
+from .Sheet import SheetWriter
 
 VERSION = "0.0.3rc0"

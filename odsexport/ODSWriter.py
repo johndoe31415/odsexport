@@ -315,7 +315,7 @@ class ODSWriter():
 			cell_node.setAttributeNS("table", "table:formula", f"of:={cell.content.value}")
 			cell_node.setAttributeNS("calcext", "calcext:value-type", cell.content.value_type.value)
 		else:
-			raise ValueError(f"Unknown type: {cell.content}")
+			raise ValueError(f"Unknown cell type of class \"{type(cell.content).__name__}\": {cell.content}")
 
 	def _serialize_sheet(self, sheet: "Sheet"):
 		spreadsheet_node = self.content_body.appendChild(self.content_document.createElement("office:spreadsheet"))
