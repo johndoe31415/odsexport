@@ -73,6 +73,14 @@ class Formula():
 		return cls.subtotal_variant("SUM", cell_range, subtotal = subtotal)
 
 	@classmethod
+	def max(cls, cell_range: str, subtotal = False):
+		return cls.subtotal_variant("MAX", cell_range, subtotal = subtotal)
+
+	@classmethod
+	def min(cls, cell_range: str, subtotal = False):
+		return cls.subtotal_variant("MIN", cell_range, subtotal = subtotal)
+
+	@classmethod
 	def average_when_have_values(cls, cell_range: str, subtotal = False):
 		return cls.if_then_else(
 			if_condition = f"{cls.count(cell_range, subtotal = subtotal)}>0",

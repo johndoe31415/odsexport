@@ -21,6 +21,7 @@
 
 import string
 import collections
+from .Style import BorderStyle
 
 class CellRange():
 	CellLocation = collections.namedtuple("CellLocation", [ "position", "top", "bottom", "left", "right" ])
@@ -117,6 +118,23 @@ class CellRange():
 		new_src = self.src.rel(x_offset = x_offset, y_offset = y_offset)
 		new_dest = new_src.rel(x_offset = new_width - 1, y_offset = new_height - 1)
 		return CellRange(new_src, new_dest)
+
+	def style(self, style: "Style"):
+		for cell_location in self:
+			cell = self.src.sheet[cell_location.position]
+			cell.style(style)
+		return self
+
+	def style_box(self, line_style: "LineStyle"):
+		for cell_location in self:
+			border_style = BorderStyle(
+					top = line_style if cell_location.top else None,
+					bottom = line_style if cell_location.bottom else None,
+					left = line_style if cell_location.left else None,
+					right = line_style if cell_location.right else None)
+			cell = self.src.sheet[cell_location.position]
+			cell.style_border(border_style)
+		return self
 
 	def __iter__(self):
 		(min_x, min_y) = self.src.position

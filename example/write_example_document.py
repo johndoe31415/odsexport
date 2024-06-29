@@ -37,8 +37,7 @@ def create_format_sheet(doc):
 
 	sheet[(2, 2)].set("Top left corner of red box")
 	sheet[(7, 4)].set("Bottom right corner of red box with wrapped text as well because the content in here is so long").style(odsexport.CellStyle(wrap = True))
-	cell_range = odsexport.CellRange.parse(sheet, "C3:H5")
-	sheet.style_box(cell_range, odsexport.LineStyle(color = "#ff0000"))
+	cell_range = odsexport.CellRange.parse(sheet, "C3:H5").style_box(odsexport.LineStyle(color = "#ff0000"))
 
 	sheet[(0, 6)].set("Below here is a row that is hidden.")
 	sheet.style_row(7, odsexport.RowStyle(hidden = True))

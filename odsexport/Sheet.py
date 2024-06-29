@@ -157,26 +157,11 @@ class Sheet():
 		self._row_style[y] = style
 		return self
 
-	def style_range(self, cell_range: "CellRange", style: "CellStyle"):
-		for position in cell_range:
-			self[position.position].style(style)
-		return self
-
-	def style_box(self, cell_range: "CellRange", line_style: "LineStyle"):
-		for position in cell_range:
-			border_style = BorderStyle(
-					top = line_style if position.top else None,
-					bottom = line_style if position.bottom else None,
-					left = line_style if position.left else None,
-					right = line_style if position.right else None)
-			self[position.position].style_border(border_style)
-		return self
-
 	def apply_conditional_format(self, conditional_format: "ConditionalFormat"):
 		self._conditional_formats.append(conditional_format)
 		return self
 
-	def add_data_table(self, data_table: "DataTableDefinition"):
+	def add_data_table(self, data_table: "DataTable"):
 		self._data_tables.append(data_table)
 		return self
 
