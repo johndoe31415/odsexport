@@ -23,11 +23,11 @@ characters that are understood:
 All of these can be combined, here is an example of a sheet "Sheet" with cell
 `G4`:
 
-  - `a`: Sheet.G4
-  - `c`: $G4
-  - `r`: G$4
-  - `cr`: $G$4
-  - `acr`: Sheet.$G$4
+  - `a`: `Sheet.G4`
+  - `c`: `$G4`
+  - `r`: `G$4`
+  - `cr`: `$G$4`
+  - `acr`: `Sheet.$G$4`
 
 
 ## Rant
@@ -44,6 +44,11 @@ and produce wrong results. Don't believe me? Try counting values using
 `COUNTIF()` with a condition that counts values greater than/less than a
 fractional value and observe what happens when the locale setting (e.g., `4.1`
 vs. `4,1`) is different than the number you enter. It really is *that* dumb.
+Oh, or have you looked at the `SUBTOTAL` function? You know, that function that
+computes different things depending on a given function *index* as a parameter?
+Like, if you want a `SUM`, that's function 9 but if you want the maximum value
+that's obviously 4. Who ever thought this train wreck of spreadsheeting was
+even remotely acceptable?
 
 Excel/LibreOffice Calc is an utter disgrace. And yet, just like thousands of
 people before me, I need to cope with it. To me, that compromise is having
