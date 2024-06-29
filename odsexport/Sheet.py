@@ -24,7 +24,6 @@ import enum
 import string
 from .Cell import Cell
 from .CellRange import CellRange
-from .Style import BorderStyle
 
 class SheetWriter():
 	class Mode(enum.IntEnum):

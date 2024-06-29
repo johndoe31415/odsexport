@@ -246,7 +246,7 @@ class ODSWriter():
 				text = style_node.appendChild(style_node.ownerDocument.createElement("number:text"))
 				text.appendChild(style_node.ownerDocument.createTextNode(data_style.suffix))
 		elif isinstance(data_style, DataStyleDateTime):
-			style_node = self.styles.appendChild(self.styles_document.createElement(f"number:date-style"))
+			style_node = self.styles.appendChild(self.styles_document.createElement("number:date-style"))
 			style_node.setAttributeNS("style", "style:name", style_class_name)
 			style_node.setAttributeNS("number", "number:automatic-order", "true")
 			style_node.setAttributeNS("number", "number:format-source", "language")
