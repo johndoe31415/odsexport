@@ -23,6 +23,7 @@ import re
 import enum
 import string
 from .Cell import Cell
+from .CellRange import CellRange
 from .Style import BorderStyle
 
 class SheetWriter():
@@ -66,13 +67,17 @@ class SheetWriter():
 		'advance' operation)."""
 		return self._last_cursor
 
-	def skip(self):
+	@property
+	def cell_range(self):
+		return CellRange(self.initial_cursor, self.last_cursor)
+
+	def skip(self, skip_count: int = 1):
 		"""Skip to next cell in current row/column. Does not affect
 		'last_cursor' value."""
 		if self._mode == self.Mode.Row:
-			self._position[0] += 1
+			self._position[0] += skip_count
 		else:
-			self._position[1] += 1
+			self._position[1] += skip_count
 		return self
 
 	def advance(self):
