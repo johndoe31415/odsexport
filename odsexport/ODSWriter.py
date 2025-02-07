@@ -1,5 +1,5 @@
 #	odsexport - Python-native ODS writer library
-#	Copyright (C) 2024-2024 Johannes Bauer
+#	Copyright (C) 2024-2025 Johannes Bauer
 #
 #	This file is part of odsexport.
 #
@@ -22,6 +22,7 @@
 import functools
 import zipfile
 import datetime
+import collections
 import xml.dom.minidom
 import odsexport
 from .XMLNode import XMLNode
@@ -95,6 +96,7 @@ class ODSWriter():
 			"META-INF/manifest.xml":	self.__new_manifest_doc(),
 		}
 		self._style_ids = { }
+		self._counters = collections.defaultdict(int)
 		self._used_fonts = set()
 		self._serialize()
 
@@ -194,6 +196,11 @@ class ODSWriter():
 			"media-type":	"text/xml",
 		})
 		return manifest_doc
+
+	def next_counter(self, name: str):
+		value = self._counters[name]
+		self._counters[name] += 1
+		return value
 
 	def _style_id(self, style_object: object, create_hook: "callable", object_prefix: str = "auto"):
 		key = (object_prefix, style_object)
@@ -401,9 +408,9 @@ class ODSWriter():
 				cond_node.setAttributeNS("calcext", "calcext:base-cell-address", format(base_cell, "a"))
 
 		database_ranges_node = spreadsheet_node.appendChild(self.content_document.createElement("table:database-ranges"))
-		for (db_no, data_table) in enumerate(sheet.data_tables):
+		for data_table in sheet.data_tables:
 			database_range_node = database_ranges_node.appendChild(self.content_document.createElement("table:database-range"))
-			database_range_node.setAttributeNS("table", "table:name", f"__db_{db_no}")
+			database_range_node.setAttributeNS("table", "table:name", f"__datatbl_{self.next_counter('data_table')}")
 			database_range_node.setAttributeNS("table", "table:target-range-address", format(data_table.cell_range, "a"))
 			database_range_node.setAttributeNS("table", "table:display-filter-buttons", "true")
 
