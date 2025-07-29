@@ -1,5 +1,5 @@
 #	odsexport - Python-native ODS writer library
-#	Copyright (C) 2024-2024 Johannes Bauer
+#	Copyright (C) 2024-2025 Johannes Bauer
 #
 #	This file is part of odsexport.
 #
@@ -26,4 +26,4 @@ from .CellRange import CellRange
 from .ODSDocument import ODSDocument
 from .Sheet import SheetWriter
 
-VERSION = "0.0.3rc0"
+VERSION = "0.0.3"
