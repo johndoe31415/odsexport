@@ -1,5 +1,5 @@
 #	odsexport - Python-native ODS writer library
-#	Copyright (C) 2024-2024 Johannes Bauer
+#	Copyright (C) 2024-2025 Johannes Bauer
 #
 #	This file is part of odsexport.
 #
@@ -19,6 +19,7 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import io
 import collections
 from .Sheet import Sheet
 from .ODSWriter import ODSWriter
@@ -42,3 +43,9 @@ class ODSDocument():
 	def write(self, filename: str):
 		ods_writer = ODSWriter(self)
 		ods_writer.write(filename)
+
+	def __bytes__(self):
+		ods_writer = ODSWriter(self)
+		f = io.BytesIO()
+		ods_writer.write_stream(f)
+		return f.getvalue()

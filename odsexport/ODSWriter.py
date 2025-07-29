@@ -430,9 +430,12 @@ class ODSWriter():
 		for sheet in self._doc.sheets:
 			self._serialize_sheet(sheet)
 
+	def write_stream(self, f):
+		with zipfile.ZipFile(f, "w", compression = zipfile.ZIP_DEFLATED) as zf:
+			zf.writestr("mimetype", b"application/vnd.oasis.opendocument.spreadsheet")
+			for (filename, xml_document) in self._xml_docs.items():
+				zf.writestr(filename, xml_document.toxml(encoding = "utf-8"))
+
 	def write(self, filename: str):
 		with open(filename, "wb") as f:
-			with zipfile.ZipFile(f, "w", compression = zipfile.ZIP_DEFLATED) as zf:
-				zf.writestr("mimetype", b"application/vnd.oasis.opendocument.spreadsheet")
-				for (filename, xml_document) in self._xml_docs.items():
-					zf.writestr(filename, xml_document.toxml(encoding = "utf-8"))
+			self.write_stream(f)
