@@ -6,7 +6,7 @@ with open("README.md") as f:
 setuptools.setup(
 	name = "odsexport",
 	packages = setuptools.find_packages(),
-	version = "0.0.3",
+	version = "0.0.4rc0",
 	license = "gpl-3.0",
 	description = "Python-native ODS writer library",
 	long_description = long_description,
@@ -14,7 +14,7 @@ setuptools.setup(
 	author = "Johannes Bauer",
 	author_email = "joe@johannes-bauer.com",
 	url = "https://github.com/johndoe31415/odsexport",
-	download_url = "https://github.com/johndoe31415/odsexport/archive/0.0.3.tar.gz",
+	download_url = "https://github.com/johndoe31415/odsexport/archive/0.0.4rc0.tar.gz",
 	keywords = [ "python", "ods", "excel", "spreadsheet" ],
 	install_requires = [ ],
 	classifiers = [
