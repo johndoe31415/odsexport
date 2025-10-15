@@ -1,5 +1,5 @@
 #	odsexport - Python-native ODS writer library
-#	Copyright (C) 2024-2024 Johannes Bauer
+#	Copyright (C) 2024-2025 Johannes Bauer
 #
 #	This file is part of odsexport.
 #
@@ -156,6 +156,10 @@ class Sheet():
 	def style_column(self, x: int, style: "ColStyle"):
 		self._col_style[x] = style
 		return self
+
+	def style_columns(self, *styles: "list[ColStyle]"):
+		for (x, style) in enumerate(styles):
+			self.style_column(x, style)
 
 	def style_row(self, y: int, style: "RowStyle"):
 		self._row_style[y] = style
