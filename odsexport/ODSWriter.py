@@ -1,5 +1,5 @@
 #	odsexport - Python-native ODS writer library
-#	Copyright (C) 2024-2025 Johannes Bauer
+#	Copyright (C) 2024-2026 Johannes Bauer
 #
 #	This file is part of odsexport.
 #
@@ -118,7 +118,7 @@ class ODSWriter():
 
 	@functools.cached_property
 	def content_body(self):
-		return XMLNode(self.content_document.childNodes[0]).get_first_child_with_tag("office:body")
+		return XMLNode(XMLNode(self.content_document.childNodes[0]).get_first_child_with_tag("office:body")).get_first_child_with_tag("office:spreadsheet")
 
 	@functools.cached_property
 	def content_automatic_styles(self):
@@ -157,6 +157,7 @@ class ODSWriter():
 		font_face_decls = content.appendChild(content_doc.createElement("office:font-face-decls"))
 		auto_styles = content.appendChild(content_doc.createElement("office:automatic-styles"))
 		body = content.appendChild(content_doc.createElement("office:body"))
+		spreadsheet = body.appendChild(content_doc.createElement("office:spreadsheet"))
 		return content_doc
 
 	@classmethod
@@ -365,8 +366,7 @@ class ODSWriter():
 			raise ValueError(f"Unknown cell type of class \"{type(cell.content).__name__}\": {cell.content}")
 
 	def _serialize_sheet(self, sheet: "Sheet"):
-		spreadsheet_node = self.content_body.appendChild(self.content_document.createElement("office:spreadsheet"))
-		table_node = spreadsheet_node.appendChild(self.content_document.createElement("table:table"))
+		table_node = self.content_body.appendChild(self.content_document.createElement("table:table"))
 		table_node.setAttributeNS("table", "table:name", sheet.name)
 
 		if sheet.has_styled_columns:
@@ -407,12 +407,22 @@ class ODSWriter():
 				base_cell = conditional_format.base_cell if (conditional_format.base_cell is not None) else conditional_format.target.src
 				cond_node.setAttributeNS("calcext", "calcext:base-cell-address", format(base_cell, "a"))
 
-		database_ranges_node = spreadsheet_node.appendChild(self.content_document.createElement("table:database-ranges"))
-		for data_table in sheet.data_tables:
+
+	def _serialize_database_ranges(self, sheets: "Iterator[Sheet]"):
+		data_tables = [ ]
+		for sheet in sheets:
+			data_tables += sheet.data_tables
+
+		if len(data_tables) == 0:
+			return
+
+		database_ranges_node = self.content_body.appendChild(self.content_document.createElement("table:database-ranges"))
+		for data_table in data_tables:
 			database_range_node = database_ranges_node.appendChild(self.content_document.createElement("table:database-range"))
 			database_range_node.setAttributeNS("table", "table:name", f"__datatbl_{self.next_counter('data_table')}")
 			database_range_node.setAttributeNS("table", "table:target-range-address", format(data_table.cell_range, "a"))
 			database_range_node.setAttributeNS("table", "table:display-filter-buttons", "true")
+
 
 	def _serialize_metadata(self):
 		now = datetime.datetime.now()
@@ -429,12 +439,13 @@ class ODSWriter():
 		self._serialize_metadata()
 		for sheet in self._doc.sheets:
 			self._serialize_sheet(sheet)
+		self._serialize_database_ranges(self._doc.sheets)
 
 	def write_stream(self, f):
-		with zipfile.ZipFile(f, "w", compression = zipfile.ZIP_DEFLATED) as zf:
-			zf.writestr("mimetype", b"application/vnd.oasis.opendocument.spreadsheet")
+		with zipfile.ZipFile(f, "w") as zf:
+			zf.writestr("mimetype", b"application/vnd.oasis.opendocument.spreadsheet", compress_type = zipfile.ZIP_STORED)
 			for (filename, xml_document) in self._xml_docs.items():
-				zf.writestr(filename, xml_document.toxml(encoding = "utf-8"))
+				zf.writestr(filename, xml_document.toxml(encoding = "utf-8"), compress_type = zipfile.ZIP_DEFLATED)
 
 	def write(self, filename: str):
 		with open(filename, "wb") as f:
