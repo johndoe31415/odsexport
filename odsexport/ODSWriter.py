@@ -430,8 +430,8 @@ class ODSWriter():
 		for sheet in sheets:
 			for conditional_format in sheet.conditional_formats:
 				conditional_format_class = f"cond{cond_id}"
-				for cell_location in conditional_format.target:
-					sheet[cell_location.position].conditional_format_class = conditional_format_class
+				for cell in conditional_format.target.iter_cells(sheet):
+					cell.conditional_format_class = conditional_format_class
 				style_node = self._create_style_node(conditional_format_class, "table-cell", self.content_automatic_styles)
 				for condition in conditional_format.conditions:
 					cond_node = style_node.appendChild(self.content_document.createElement("style:map"))

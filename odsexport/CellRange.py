@@ -163,6 +163,13 @@ class CellRange():
 					y = min_y + yoff
 					yield self.CellLocation(position = (max_x, y), top = False, bottom = False, left = False, right = True)
 
+	def iter_cells(self, sheet: "Sheet"):
+		(min_x, min_y) = self.src.position
+		(max_x, max_y) = self.dest.position
+		for y in range(min_y, max_y + 1):
+			for x in range(min_x, max_x + 1):
+				yield sheet[(x, y)]
+
 	def __format__(self, format_string: str):
 		absolute = "a" in format_string
 		fixed_col = "c" in format_string

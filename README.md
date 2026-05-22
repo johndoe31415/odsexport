@@ -62,12 +62,22 @@ Oh, or have you looked at the `SUBTOTAL` function? You know, that function that
 computes different things depending on a given function *index* as a parameter?
 Like, if you want a `SUM`, that's function 9 but if you want the maximum value
 that's obviously 4. Who ever thought this train wreck of spreadsheeting was
-even remotely acceptable?
+even remotely acceptable? Why is this whole standard so terribly inconsistent
+and requires [brackets] for cell references in certain cases, but not others?
+Why does Excel hide a column just right if `table:visibility` is set to
+`collapse` but doesn't do the same for rows unless there is a style name set
+(even if that style is completely empty)? Who can actually, seriously, work
+with this raging dumpster fire?
 
 Excel/LibreOffice Calc is an utter disgrace. And yet, just like thousands of
 people before me, I need to cope with it. To me, that compromise is having
 actual good data quality in a safe haven and only exporting to Excel when
 needed.
+
+
+## Acknowledgements
+The cute watermelon 16x16 icon is courtesy of
+[Suzana Assets (Fruits Icons - 16x16)](https://suzana-assets.itch.io/). Thanks!
 
 
 ## License

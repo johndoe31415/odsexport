@@ -141,6 +141,50 @@ def create_conditional_formatting_sheet(doc):
 		odsexport.FormatCondition(condition = f"{cell_range.src.left.left:acb}<32", cell_style = odsexport.CellStyle(background_color = "#00ffff")),
 	)))
 
+def create_conditional_formatting_image(doc):
+	sheet = doc.new_sheet("Image")
+	(width, height) = (16, 16)
+	cell_length = "1cm"
+	for x in range(width):
+		sheet.style_column(x, odsexport.ColStyle(width = cell_length))
+	for y in range(height):
+		sheet.style_row(y, odsexport.RowStyle(height = cell_length))
+	colors = {
+		0: "dbd8c4",
+		1: "ed1c24",
+		2: "f44336",
+		3: "4caf50",
+		4: "000000",
+		5: "ede7f6",
+	}
+	values = [
+		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 0, 0],
+		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 3, 0, 0],
+		[0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 4, 2, 5, 3, 0],
+		[0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 5, 3, 0],
+		[0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2, 5, 3, 0],
+		[0, 0, 0, 0, 0, 1, 1, 1, 4, 1, 1, 2, 5, 3, 0, 0],
+		[0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 5, 3, 0, 0],
+		[0, 0, 2, 2, 4, 1, 1, 1, 1, 1, 2, 5, 3, 0, 0, 0],
+		[0, 0, 5, 5, 2, 2, 1, 1, 1, 2, 2, 5, 3, 0, 0, 0],
+		[0, 0, 3, 3, 5, 5, 2, 2, 2, 5, 5, 3, 0, 0, 0, 0],
+		[0, 0, 0, 0, 3, 3, 5, 5, 5, 3, 3, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+	]
+	writer = sheet.writer()
+	for row in values:
+		writer.writerow(row)
+
+	cell_range = odsexport.CellRange(sheet[(0, 0)], sheet[(width - 1, height - 1)])
+	conditions = [ ]
+	for (index, color) in colors.items():
+		conditions.append(odsexport.FormatCondition(condition = f"={index}", cell_style = odsexport.CellStyle(background_color = f"#{color}")))
+	sheet.apply_conditional_format(odsexport.ConditionalFormat(target = cell_range, conditions = conditions))
+
 def create_simple_sheet(doc):
 	sheet = doc.new_sheet("Simple row-writer")
 	writer = sheet.writer()
@@ -190,6 +234,7 @@ doc = odsexport.ODSDocument()
 reference_cell = create_format_sheet(doc)
 create_formula_sheet(doc, reference_cell)
 create_conditional_formatting_sheet(doc)
+create_conditional_formatting_image(doc)
 create_simple_sheet(doc)
 create_internal_function_sheet(doc)
 create_data_table(doc)
