@@ -339,6 +339,15 @@ class ODSWriter():
 		style_node = self._create_style_node(style_class_name, "table-cell", self.styles)
 		return self._serialize_cell_style(style, style_class_name, style_node)
 
+	def _serialize_default_styles(self):
+		# These are styles that are empty. They are needed because Excel when
+		# importing ODS requires a table-row tag to contain a style:name
+		# attribute otherwise it will ignore That the row should be collapsed.
+		# Since they are very small, we always generate these definitions even
+		# if they're never used.
+		self._create_style_node("dr", "table-row", self.content_automatic_styles)
+		self._create_style_node("dc", "table-column", self.content_automatic_styles)
+
 	def _serialize_cell(self, cell: "Cell", cell_node: "Element"):
 		if cell.conditional_format_class is not None:
 			cell_node.setAttributeNS("table", "table:style-name", cell.conditional_format_class)
@@ -379,6 +388,8 @@ class ODSWriter():
 						col_node.setAttributeNS("table", "table:visibility", "collapse")
 					if col_style.width is not None:
 						col_node.setAttributeNS("table", "table:style-name", self._style_id(col_style, self._serialize_col_style))
+					else:
+						col_node.setAttributeNS("table", "table:style-name", "dc")
 
 		for (y, row_style) in enumerate(sheet.iter_rows):
 			row_node = table_node.appendChild(self.content_document.createElement("table:table-row"))
@@ -387,6 +398,8 @@ class ODSWriter():
 					row_node.setAttributeNS("table", "table:visibility", "collapse")
 				if row_style.height is not None:
 					row_node.setAttributeNS("table", "table:style-name", self._style_id(row_style, self._serialize_row_style))
+				else:
+					row_node.setAttributeNS("table", "table:style-name", "dr")
 			for x in range(sheet._max_x + 1):
 				cell_node = row_node.appendChild(self.content_document.createElement("table:table-cell"))
 				cell = sheet._cells.get((x, y))
@@ -460,6 +473,7 @@ class ODSWriter():
 	def _serialize(self):
 		self._serialize_metadata()
 		self._serialize_conditional_formatting_styles(self._doc.sheets)
+		self._serialize_default_styles()
 		for sheet in self._doc.sheets:
 			self._serialize_sheet(sheet)
 		self._serialize_database_ranges(self._doc.sheets)
