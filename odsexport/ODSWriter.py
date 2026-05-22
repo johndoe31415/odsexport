@@ -340,7 +340,9 @@ class ODSWriter():
 		return self._serialize_cell_style(style, style_class_name, style_node)
 
 	def _serialize_cell(self, cell: "Cell", cell_node: "Element"):
-		if cell.current_style is not None:
+		if cell.conditional_format_class is not None:
+			cell_node.setAttributeNS("table", "table:style-name", cell.conditional_format_class)
+		elif cell.current_style is not None:
 			cell_node.setAttributeNS("table", "table:style-name", self._style_id(cell.current_style, self._serialize_automatic_cell_style))
 
 		if cell.content is None:
@@ -391,22 +393,22 @@ class ODSWriter():
 				if cell is not None:
 					self._serialize_cell(cell, cell_node)
 
-		cond_fmts_node = table_node.appendChild(self.content_document.createElement("calcext:conditional-formats"))
-		for conditional_format in sheet.conditional_formats:
-			cond_fmt_node = cond_fmts_node.appendChild(self.content_document.createElement("calcext:conditional-format"))
-			cond_fmt_node.setAttributeNS("calcext", "calcext:target-range-address", format(conditional_format.target, "a"))
-			for condition in conditional_format.conditions:
-				cond_node = cond_fmt_node.appendChild(self.content_document.createElement("calcext:condition"))
-				cond_node.setAttributeNS("calcext", "calcext:apply-style-name", self._style_id(condition.cell_style, self._serialize_global_cell_style, object_prefix = "glbl"))
-				if conditional_format.condition_type == ConditionType.CellValue:
-					cond_node.setAttributeNS("calcext", "calcext:value", condition.condition)
-				elif conditional_format.condition_type == ConditionType.Formula:
-					cond_node.setAttributeNS("calcext", "calcext:value", f"formula-is({condition.condition})")
-				else:
-					raise TypeError(f"Unknown type: {condition.condition.type}")
-				base_cell = conditional_format.base_cell if (conditional_format.base_cell is not None) else conditional_format.target.src
-				cond_node.setAttributeNS("calcext", "calcext:base-cell-address", format(base_cell, "a"))
-
+		if len(sheet.conditional_formats) > 0:
+			cond_fmts_node = table_node.appendChild(self.content_document.createElement("calcext:conditional-formats"))
+			for conditional_format in sheet.conditional_formats:
+				cond_fmt_node = cond_fmts_node.appendChild(self.content_document.createElement("calcext:conditional-format"))
+				cond_fmt_node.setAttributeNS("calcext", "calcext:target-range-address", format(conditional_format.target, "a"))
+				for condition in conditional_format.conditions:
+					cond_node = cond_fmt_node.appendChild(self.content_document.createElement("calcext:condition"))
+					cond_node.setAttributeNS("calcext", "calcext:apply-style-name", self._style_id(condition.cell_style, self._serialize_global_cell_style, object_prefix = "glbl"))
+					if conditional_format.condition_type == ConditionType.CellValue:
+						cond_node.setAttributeNS("calcext", "calcext:value", condition.condition)
+					elif conditional_format.condition_type == ConditionType.Formula:
+						cond_node.setAttributeNS("calcext", "calcext:value", f"formula-is({condition.condition})")
+					else:
+						raise TypeError(f"Unknown type: {condition.condition.type}")
+					base_cell = conditional_format.base_cell if (conditional_format.base_cell is not None) else conditional_format.target.src
+					cond_node.setAttributeNS("calcext", "calcext:base-cell-address", format(base_cell, "a"))
 
 	def _serialize_database_ranges(self, sheets: "Iterator[Sheet]"):
 		data_tables = [ ]
@@ -423,6 +425,26 @@ class ODSWriter():
 			database_range_node.setAttributeNS("table", "table:target-range-address", format(data_table.cell_range, "a"))
 			database_range_node.setAttributeNS("table", "table:display-filter-buttons", "true")
 
+	def _serialize_conditional_formatting_styles(self, sheets: "Iterator[Sheet]"):
+		cond_id = 0
+		for sheet in sheets:
+			for conditional_format in sheet.conditional_formats:
+				conditional_format_class = f"cond{cond_id}"
+				for cell_location in conditional_format.target:
+					sheet[cell_location.position].conditional_format_class = conditional_format_class
+				style_node = self._create_style_node(conditional_format_class, "table-cell", self.content_automatic_styles)
+				for condition in conditional_format.conditions:
+					cond_node = style_node.appendChild(self.content_document.createElement("style:map"))
+					cond_node.setAttributeNS("style", "style:apply-style-name", self._style_id(condition.cell_style, self._serialize_global_cell_style, object_prefix = "glbl"))
+					if conditional_format.condition_type == ConditionType.CellValue:
+						cond_node.setAttributeNS("style", "style:condition", f"cell-content(){condition.condition}")
+					elif conditional_format.condition_type == ConditionType.Formula:
+						cond_node.setAttributeNS("style", "style:condition", f"is-true-formula({condition.condition})")
+					else:
+						raise TypeError(f"Unknown type: {condition.condition.type}")
+					base_cell = conditional_format.base_cell if (conditional_format.base_cell is not None) else conditional_format.target.src
+					cond_node.setAttributeNS("style", "style:base-cell-address", format(base_cell, "a"))
+				cond_id += 1
 
 	def _serialize_metadata(self):
 		now = datetime.datetime.now()
@@ -437,6 +459,7 @@ class ODSWriter():
 
 	def _serialize(self):
 		self._serialize_metadata()
+		self._serialize_conditional_formatting_styles(self._doc.sheets)
 		for sheet in self._doc.sheets:
 			self._serialize_sheet(sheet)
 		self._serialize_database_ranges(self._doc.sheets)

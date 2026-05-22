@@ -1,5 +1,5 @@
 #	odsexport - Python-native ODS writer library
-#	Copyright (C) 2024-2024 Johannes Bauer
+#	Copyright (C) 2024-2026 Johannes Bauer
 #
 #	This file is part of odsexport.
 #
@@ -32,6 +32,7 @@ class Cell():
 		self._position = position
 		self._content = None
 		self._style = None
+		self._conditional_format_class = None
 
 	@property
 	def sheet(self):
@@ -56,6 +57,14 @@ class Cell():
 	@property
 	def current_style(self):
 		return self._style
+
+	@property
+	def conditional_format_class(self) -> str | None:
+		return self._conditional_format_class
+
+	@conditional_format_class.setter
+	def conditional_format_class(self, format_class: str | None):
+		self._conditional_format_class = format_class
 
 	@functools.cached_property
 	def cell_id(self):

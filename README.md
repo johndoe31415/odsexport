@@ -11,6 +11,7 @@ their cells according to formulas). An example of what documents it can produce
 is given in the `example` directory along with the source code that produced
 it.
 
+
 ## Cell formatting
 When handing cells or cell ranges from odsexport, there are three format
 characters that are understood:
@@ -19,6 +20,8 @@ characters that are understood:
     be used when referencing cells between different sheets.
   - `c`: Pin the column. I.e., instead of `G4`, it will produce `$G4`.
   - `r`: Pin the row. I.e., instead of `G4`, it will produce `G$4`.
+  - `b`: Put the cell expression in braces, e.g., produce `[.G4]` instead of
+    `G4`. This is required inside all fomula expressions.
 
 All of these can be combined, here is an example of a sheet "Sheet" with cell
 `G4`:
@@ -28,6 +31,17 @@ All of these can be combined, here is an example of a sheet "Sheet" with cell
   - `r`: `G$4`
   - `cr`: `$G$4`
   - `acr`: `Sheet.$G$4`
+  - `abcr`: `[Sheet.$G$4]`
+
+
+## Formulas
+Inside formulas, brace notation must be used for all cell references. odsexport
+does treat all formulas just as strings and acts completely dumb. It will
+happily accept anything you throw at it. However, note that a misformatted
+formula (e.g., a cell that uses `Sheet.G4` instead of the correct `[Sheet.G4]`)
+will lead to interoperability issues. OpenOffice will read such a document just
+fine while Excel will reject it and throw an error. **It is the responsibility
+of the odsexport user to use cell references correctly.**
 
 
 ## Rant
@@ -54,6 +68,7 @@ Excel/LibreOffice Calc is an utter disgrace. And yet, just like thousands of
 people before me, I need to cope with it. To me, that compromise is having
 actual good data quality in a safe haven and only exporting to Excel when
 needed.
+
 
 ## License
 GNU GPL-3.

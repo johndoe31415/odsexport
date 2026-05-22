@@ -1,5 +1,5 @@
 #	odsexport - Python-native ODS writer library
-#	Copyright (C) 2024-2024 Johannes Bauer
+#	Copyright (C) 2024-2026 Johannes Bauer
 #
 #	This file is part of odsexport.
 #
@@ -167,14 +167,17 @@ class CellRange():
 		absolute = "a" in format_string
 		fixed_col = "c" in format_string
 		fixed_row = "r" in format_string
+		surrounding_braces = "b" in format_string
 
-		prefix = f"'{self._src_cell.sheet.name}'." if absolute else ""
+		prefix = f"'{self._src_cell.sheet.name}'." if absolute else ("." if surrounding_braces else "")
+		brace_prefix = "[" if surrounding_braces else ""
+		brace_suffix = "]" if surrounding_braces else ""
 		col = "$" if fixed_col else ""
 		row = "$" if fixed_row else ""
 		if not self.is_range:
-			return f"{prefix}{col}{self._col_letter(self._src_cell.x)}{row}{self._row_number(self._src_cell.y)}"
+			return f"{brace_prefix}{prefix}{col}{self._col_letter(self._src_cell.x)}{row}{self._row_number(self._src_cell.y)}{brace_suffix}"
 		else:
-			return f"{prefix}{col}{self._col_letter(self._src_cell.x)}{row}{self._row_number(self._src_cell.y)}:{prefix}{col}{self._col_letter(self._dest_cell.x)}{row}{self._row_number(self._dest_cell.y)}"
+			return f"{brace_prefix}{prefix}{col}{self._col_letter(self._src_cell.x)}{row}{self._row_number(self._src_cell.y)}:{prefix}{col}{self._col_letter(self._dest_cell.x)}{row}{self._row_number(self._dest_cell.y)}{brace_suffix}"
 
 	def __repr__(self):
 		return format(self)

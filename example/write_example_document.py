@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #	odsexport - Python-native ODS writer library
-#	Copyright (C) 2024-2024 Johannes Bauer
+#	Copyright (C) 2024-2026 Johannes Bauer
 #
 #	This file is part of odsexport.
 #
@@ -69,27 +69,27 @@ def create_formula_sheet(doc, reference_cell):
 
 	sheet.style_column(0, odsexport.ColStyle(width = "4cm"))
 	sheet[(0, 0)].set("Imported value:").style(bold_style)
-	cell = sheet[(1, 0)].set_formula(f"{reference_cell:a}")
+	cell = sheet[(1, 0)].set_formula(f"{reference_cell:ab}")
 
 	left = sheet[(0, 1)].set("Computed value 1:").style(bold_style)
-	right = sheet[(1, 1)].set_formula(f"({cell}*2/3) + 123 + Pi()")
+	right = sheet[(1, 1)].set_formula(f"({cell:b}*2/3) + 123 + Pi()")
 	cell = right
 
 	left = sheet[(0, 2)].set("Computed value 2:").style(bold_style)
-	right = sheet[(1, 2)].set_formula(f"{cell}/300")
+	right = sheet[(1, 2)].set_formula(f"{cell:b}/300")
 	cell2 = right
 
 	for num in range(6):
 		left = left.down
 		right = right.down
 		left.set(f"Rounded with {num} digits:").style(bold_style)
-		right.set_formula(f"{cell}").style(odsexport.CellStyle(data_style = odsexport.DataStyleNumber.fixed(num)))
+		right.set_formula(f"{cell:b}").style(odsexport.CellStyle(data_style = odsexport.DataStyleNumber.fixed(num)))
 
 	for num in range(3):
 		left = left.down
 		right = right.down
 		left.set(f"Percent with {num} digits:").style(bold_style)
-		right.set_formula(f"{cell2}").style(odsexport.CellStyle(data_style = odsexport.DataStylePercent.fixed(num)))
+		right.set_formula(f"{cell2:b}").style(odsexport.CellStyle(data_style = odsexport.DataStylePercent.fixed(num)))
 
 	now = datetime.datetime.now()
 	left = left.down
@@ -116,27 +116,37 @@ def create_conditional_formatting_sheet(doc):
 		text2_cell.set(f"Octvalue {i:#08o}")
 
 	# Create a simple conditional format with value-dependent evaluation
-	cell_range = odsexport.CellRange(sheet[(0, 0)], sheet[(0, 20)])
+	cell_range = odsexport.CellRange(sheet[(0, 0)], sheet[(0, 24)])
 	sheet.apply_conditional_format(odsexport.ConditionalFormat(target = cell_range, conditions = (
-		odsexport.FormatCondition(condition = "<5", cell_style = odsexport.CellStyle(background_color = "#ff0000")),
-		odsexport.FormatCondition(condition = "<10", cell_style = odsexport.CellStyle(background_color = "#0000ff")),
-		odsexport.FormatCondition(condition = "<15", cell_style = odsexport.CellStyle(background_color = "#00ff00")),
+		odsexport.FormatCondition(condition = "<10", cell_style = odsexport.CellStyle(background_color = "#ff0000")),
+		odsexport.FormatCondition(condition = "<20", cell_style = odsexport.CellStyle(background_color = "#0000ff")),
+		odsexport.FormatCondition(condition = "<30", cell_style = odsexport.CellStyle(background_color = "#00ff00")),
 	)))
 
 	# Create a conditional format with a formula that evaluates relative fields
 	# (fixed column mode)
-	cell_range = odsexport.CellRange(sheet[(1, 0)], sheet[(2, 20)])
+	cell_range = odsexport.CellRange(sheet[(1, 0)], sheet[(1, 24)])
 	sheet.apply_conditional_format(odsexport.ConditionalFormat(target = cell_range, condition_type = odsexport.ConditionType.Formula, conditions = (
-		odsexport.FormatCondition(condition = f"{cell_range.src.left:ac}<4", cell_style = odsexport.CellStyle(background_color = "#ff0000")),
-		odsexport.FormatCondition(condition = f"{cell_range.src.left:ac}<8", cell_style = odsexport.CellStyle(background_color = "#0000ff")),
-		odsexport.FormatCondition(condition = f"{cell_range.src.left:ac}<16", cell_style = odsexport.CellStyle(background_color = "#00ff00")),
+		odsexport.FormatCondition(condition = f"{cell_range.src.left:acb}<16", cell_style = odsexport.CellStyle(background_color = "#ff0000")),
+		odsexport.FormatCondition(condition = f"{cell_range.src.left:acb}<32", cell_style = odsexport.CellStyle(background_color = "#0000ff")),
+	)))
+
+	# Create a conditional format with a formula that evaluates relative fields
+	# (fixed column mode)
+	cell_range = odsexport.CellRange(sheet[(2, 0)], sheet[(2, 24)])
+	sheet.apply_conditional_format(odsexport.ConditionalFormat(target = cell_range, condition_type = odsexport.ConditionType.Formula, conditions = (
+		odsexport.FormatCondition(condition = f"{cell_range.src.left.left:acb}<8", cell_style = odsexport.CellStyle(background_color = "#ff0000")),
+		odsexport.FormatCondition(condition = f"{cell_range.src.left.left:acb}<16", cell_style = odsexport.CellStyle(background_color = "#00ff00")),
+		odsexport.FormatCondition(condition = f"{cell_range.src.left.left:acb}<24", cell_style = odsexport.CellStyle(background_color = "#0000ff")),
+		odsexport.FormatCondition(condition = f"{cell_range.src.left.left:acb}<32", cell_style = odsexport.CellStyle(background_color = "#00ffff")),
 	)))
 
 def create_simple_sheet(doc):
-	sheet = doc.new_sheet("Simple data entry")
+	sheet = doc.new_sheet("Simple row-writer")
 	writer = sheet.writer()
+	writer.writerow([ "Value", "Pi*Value", "Hex", "Formula" ])
 	for i in range(10):
-		row = [ "Value:", i, i * 3.1415, f"{i:#04x}", odsexport.Formula(f"B{i+1}*4") ]
+		row = [ i, i * 3.1415, f"{i:#04x}", odsexport.Formula(f"[.B{i+2}]*4") ]
 		writer.writerow(row)
 
 def create_internal_function_sheet(doc):
@@ -149,9 +159,9 @@ def create_internal_function_sheet(doc):
 		writer.write(value)
 		cell = writer.last_cursor
 
-		writer.write(odsexport.Formula(f"ROUND({cell};1)"))
-		writer.write(odsexport.Formula(odsexport.Formula.round_half_to_even(cell, 1)))
-		writer.write(odsexport.Formula(f"{writer.last_cursor.left}-{writer.last_cursor}"))
+		writer.write(odsexport.Formula(f"ROUND({cell:b};1)"))
+		writer.write(odsexport.Formula(odsexport.Formula.round_half_to_even(f"{cell:b}", 1)))
+		writer.write(odsexport.Formula(f"{writer.last_cursor.left:b}-{writer.last_cursor:b}"))
 		writer.advance()
 
 def create_data_table(doc):
@@ -173,8 +183,8 @@ def create_data_table(doc):
 	data_range = cell_range.sub_range(x_offset = 3, y_offset = 1, height = -1, width = 1)
 
 	writer.cursor = writer.cursor.rel(x_offset = 2, y_offset = 1)
-	writer.writerow([ "Average:", odsexport.Formula(odsexport.Formula.average_when_have_values(data_range, subtotal = True)) ])
-	writer.writerow([ "Sum:", odsexport.Formula(odsexport.Formula.sum(data_range, subtotal = True)) ])
+	writer.writerow([ "Average:", odsexport.Formula(odsexport.Formula.average_when_have_values(f"{data_range:b}", subtotal = True)) ])
+	writer.writerow([ "Sum:", odsexport.Formula(odsexport.Formula.sum(f"{data_range:b}", subtotal = True)) ])
 
 doc = odsexport.ODSDocument()
 reference_cell = create_format_sheet(doc)
