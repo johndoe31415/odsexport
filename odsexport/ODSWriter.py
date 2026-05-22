@@ -368,13 +368,8 @@ class ODSWriter():
 			text_node = cell_node.appendChild(cell_node.ownerDocument.createElement("text:p"))
 			text_node.appendChild(cell_node.ownerDocument.createTextNode(str(cell.content)))
 		elif isinstance(cell.content, Formula):
-			cell_node.setAttributeNS("office", "office:value-type", cell.content.value_type.value)
+			cell_node.setAttributeNS("office", "office:value-type", "error")
 			cell_node.setAttributeNS("table", "table:formula", f"of:={cell.content.value}")
-			default_value = {
-				CellValueType.Float: "0",
-				CellValueType.String: "",
-			}[cell.content.value_type]
-			cell_node.setAttributeNS("office", "office:value", default_value)
 		elif isinstance(cell.content, datetime.datetime):
 			cell_node.setAttributeNS("office", "office:value-type", "date")
 			cell_node.setAttributeNS("office", "office:date-value", cell.content.strftime("%Y-%m-%dT%H:%M:%S"))
