@@ -27,11 +27,11 @@ import xml.dom.minidom
 import odsexport
 from .XMLNode import XMLNode
 from .Cell import Formula
-from .Enums import ConditionType
+from .Enums import ConditionType, CellValueType
 from .Style import DataStyleNumber, DataStylePercent, DataStyleDateTime
 
 class ODSWriter():
-	_ODF_VERSION = "1.2"
+	_ODF_VERSION = "1.4"
 
 	_NAMESPACES = {
 		"styles.xml": {
@@ -45,7 +45,6 @@ class ODSWriter():
 		},
 		"content.xml": {
 			"office": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
-			"calcext": "urn:org:documentfoundation:names:experimental:calc:xmlns:calcext:1.0",
 			"chart": "urn:oasis:names:tc:opendocument:xmlns:chart:1.0",
 			"css3t": "http://www.w3.org/TR/css3-text/",
 			"dc": "http://purl.org/dc/elements/1.1/",
@@ -61,7 +60,7 @@ class ODSWriter():
 			"math": "http://www.w3.org/1998/Math/MathML",
 			"meta": "urn:oasis:names:tc:opendocument:xmlns:meta:1.0",
 			"number": "urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0",
-			"of": f"urn:oasis:names:tc:opendocument:xmlns:of:{_ODF_VERSION}",
+			"of": "urn:oasis:names:tc:opendocument:xmlns:of:1.2",
 			"ooo": "http://openoffice.org/2004/office",
 			"oooc": "http://openoffice.org/2004/calc",
 			"ooow": "http://openoffice.org/2004/writer",
@@ -288,9 +287,6 @@ class ODSWriter():
 	def _serialize_cell_style(self, style: "CellStyle", style_class_name: str, style_node: "Element"):
 		if style.data_style is not None:
 			style_node.setAttributeNS("style", "style:data-style-name", self._style_id(style.data_style, self._serialize_data_style))
-		if style.halign is not None:
-			paragraph_properties = style_node.appendChild(style_node.ownerDocument.createElement("style:paragraph-properties"))
-			paragraph_properties.setAttributeNS("fo", "fo:text-align", style.halign.value)
 
 		if (style.rotation_angle is not None) or style.wrap or (style.valign is not None) or (style.background_color is not None) or (style.border is not None):
 			table_cell_properties = style_node.appendChild(style_node.ownerDocument.createElement("style:table-cell-properties"))
@@ -312,6 +308,9 @@ class ODSWriter():
 				if style.border.right is not None:
 					table_cell_properties.setAttributeNS("fo", "fo:border-right", style.border.right.style_str)
 
+		if style.halign is not None:
+			paragraph_properties = style_node.appendChild(style_node.ownerDocument.createElement("style:paragraph-properties"))
+			paragraph_properties.setAttributeNS("fo", "fo:text-align", style.halign.value)
 
 		if style.font is not None:
 			font = style_node.appendChild(style_node.ownerDocument.createElement("style:text-properties"))
@@ -369,11 +368,15 @@ class ODSWriter():
 			text_node = cell_node.appendChild(cell_node.ownerDocument.createElement("text:p"))
 			text_node.appendChild(cell_node.ownerDocument.createTextNode(str(cell.content)))
 		elif isinstance(cell.content, Formula):
+			cell_node.setAttributeNS("office", "office:value-type", cell.content.value_type.value)
 			cell_node.setAttributeNS("table", "table:formula", f"of:={cell.content.value}")
-			cell_node.setAttributeNS("calcext", "calcext:value-type", cell.content.value_type.value)
+			default_value = {
+				CellValueType.Float: "0",
+				CellValueType.String: "",
+			}[cell.content.value_type]
+			cell_node.setAttributeNS("office", "office:value", default_value)
 		elif isinstance(cell.content, datetime.datetime):
 			cell_node.setAttributeNS("office", "office:value-type", "date")
-			cell_node.setAttributeNS("calcext", "calcext:value-type", "date")
 			cell_node.setAttributeNS("office", "office:date-value", cell.content.strftime("%Y-%m-%dT%H:%M:%S"))
 		else:
 			raise ValueError(f"Unknown cell type of class \"{type(cell.content).__name__}\": {cell.content}")
@@ -382,16 +385,15 @@ class ODSWriter():
 		table_node = self.content_body.appendChild(self.content_document.createElement("table:table"))
 		table_node.setAttributeNS("table", "table:name", sheet.name)
 
-		if sheet.has_styled_columns:
-			for col_style in sheet.iter_columns:
-				col_node = table_node.appendChild(self.content_document.createElement("table:table-column"))
-				if col_style is not None:
-					if col_style.hidden:
-						col_node.setAttributeNS("table", "table:visibility", "collapse")
-					if col_style.width is not None:
-						col_node.setAttributeNS("table", "table:style-name", self._style_id(col_style, self._serialize_col_style))
-					else:
-						col_node.setAttributeNS("table", "table:style-name", "dc")
+		for col_style in sheet.iter_columns:
+			col_node = table_node.appendChild(self.content_document.createElement("table:table-column"))
+			if col_style is not None:
+				if col_style.hidden:
+					col_node.setAttributeNS("table", "table:visibility", "collapse")
+				if col_style.width is not None:
+					col_node.setAttributeNS("table", "table:style-name", self._style_id(col_style, self._serialize_col_style))
+				else:
+					col_node.setAttributeNS("table", "table:style-name", "dc")
 
 		for (y, row_style) in enumerate(sheet.iter_rows):
 			row_node = table_node.appendChild(self.content_document.createElement("table:table-row"))
@@ -407,6 +409,11 @@ class ODSWriter():
 				cell = sheet._cells.get((x, y))
 				if cell is not None:
 					self._serialize_cell(cell, cell_node)
+				else:
+					# Non-existent cell/empty
+					cell_node.setAttributeNS("office", "office:value-type", "string")
+					text_node = cell_node.appendChild(cell_node.ownerDocument.createElement("text:p"))
+					text_node.appendChild(cell_node.ownerDocument.createTextNode(""))
 
 	def _serialize_database_ranges(self, sheets: "Iterator[Sheet]"):
 		data_tables = [ ]
