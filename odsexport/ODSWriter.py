@@ -406,23 +406,6 @@ class ODSWriter():
 				if cell is not None:
 					self._serialize_cell(cell, cell_node)
 
-		if len(sheet.conditional_formats) > 0:
-			cond_fmts_node = table_node.appendChild(self.content_document.createElement("calcext:conditional-formats"))
-			for conditional_format in sheet.conditional_formats:
-				cond_fmt_node = cond_fmts_node.appendChild(self.content_document.createElement("calcext:conditional-format"))
-				cond_fmt_node.setAttributeNS("calcext", "calcext:target-range-address", format(conditional_format.target, "a"))
-				for condition in conditional_format.conditions:
-					cond_node = cond_fmt_node.appendChild(self.content_document.createElement("calcext:condition"))
-					cond_node.setAttributeNS("calcext", "calcext:apply-style-name", self._style_id(condition.cell_style, self._serialize_global_cell_style, object_prefix = "glbl"))
-					if conditional_format.condition_type == ConditionType.CellValue:
-						cond_node.setAttributeNS("calcext", "calcext:value", condition.condition)
-					elif conditional_format.condition_type == ConditionType.Formula:
-						cond_node.setAttributeNS("calcext", "calcext:value", f"formula-is({condition.condition})")
-					else:
-						raise TypeError(f"Unknown type: {condition.condition.type}")
-					base_cell = conditional_format.base_cell if (conditional_format.base_cell is not None) else conditional_format.target.src
-					cond_node.setAttributeNS("calcext", "calcext:base-cell-address", format(base_cell, "a"))
-
 	def _serialize_database_ranges(self, sheets: "Iterator[Sheet]"):
 		data_tables = [ ]
 		for sheet in sheets:
