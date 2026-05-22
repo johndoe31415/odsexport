@@ -9,7 +9,10 @@ implemented as well. odsexport is intended to make it easy to use ODS documents
 as a data sink while creating documents that are mutable (i.e., recalculate
 their cells according to formulas). An example of what documents it can produce
 is given in the `example` directory along with the source code that produced
-it.
+it:
+
+  - [Produced ODS file](https://github.com/johndoe31415/odsexport/raw/refs/heads/main/example/example_document.ods)
+  - [Source code](https://github.com/johndoe31415/odsexport/blob/main/example/write_example_document.py)
 
 
 ## Cell formatting
