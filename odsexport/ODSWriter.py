@@ -31,6 +31,8 @@ from .Enums import ConditionType
 from .Style import DataStyleNumber, DataStylePercent, DataStyleDateTime
 
 class ODSWriter():
+	_ODF_VERSION = "1.2"
+
 	_NAMESPACES = {
 		"styles.xml": {
 			"office": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
@@ -59,7 +61,7 @@ class ODSWriter():
 			"math": "http://www.w3.org/1998/Math/MathML",
 			"meta": "urn:oasis:names:tc:opendocument:xmlns:meta:1.0",
 			"number": "urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0",
-			"of": "urn:oasis:names:tc:opendocument:xmlns:of:1.2",
+			"of": f"urn:oasis:names:tc:opendocument:xmlns:of:{_ODF_VERSION}",
 			"ooo": "http://openoffice.org/2004/office",
 			"oooc": "http://openoffice.org/2004/calc",
 			"ooow": "http://openoffice.org/2004/writer",
@@ -142,7 +144,7 @@ class ODSWriter():
 		styles = styles_doc.appendChild(styles_doc.createElement("office:document-styles"))
 		for (nsname, nsuri) in cls._NAMESPACES["styles.xml"].items():
 			styles.setAttributeNS("xmlns", f"xmlns:{nsname}", nsuri)
-		styles.setAttributeNS("office", "office:version", "1.2")
+		styles.setAttributeNS("office", "office:version", cls._ODF_VERSION)
 		styles = styles.appendChild(styles_doc.createElement("office:styles"))
 		return styles_doc
 
@@ -152,7 +154,7 @@ class ODSWriter():
 		content = content_doc.appendChild(content_doc.createElement("office:document-content"))
 		for (nsname, nsuri) in cls._NAMESPACES["content.xml"].items():
 			content.setAttributeNS("xmlns", f"xmlns:{nsname}", nsuri)
-		content.setAttributeNS("office", "office:version", "1.2")
+		content.setAttributeNS("office", "office:version", cls._ODF_VERSION)
 
 		font_face_decls = content.appendChild(content_doc.createElement("office:font-face-decls"))
 		auto_styles = content.appendChild(content_doc.createElement("office:automatic-styles"))
@@ -166,7 +168,7 @@ class ODSWriter():
 		doc_meta = meta_doc.appendChild(meta_doc.createElement("office:document-meta"))
 		for (nsname, nsuri) in cls._NAMESPACES["meta.xml"].items():
 			doc_meta.setAttributeNS("xmlns", f"xmlns:{nsname}", nsuri)
-		doc_meta.setAttributeNS("office", "office:version", "1.2")
+		doc_meta.setAttributeNS("office", "office:version", cls._ODF_VERSION)
 
 		meta = doc_meta.appendChild(meta_doc.createElement("office:meta"))
 		return meta_doc
@@ -177,11 +179,11 @@ class ODSWriter():
 		manifest = manifest_doc.appendChild(manifest_doc.createElement("manifest:manifest"))
 		for (nsname, nsuri) in cls._NAMESPACES["manifest.xml"].items():
 			manifest.setAttributeNS("xmlns", f"xmlns:{nsname}", nsuri)
-		manifest.setAttributeNS("manifest", "manifest:version", "1.2")
+		manifest.setAttributeNS("manifest", "manifest:version", cls._ODF_VERSION)
 
 		XMLNode(manifest.appendChild(manifest_doc.createElement("manifest:file-entry"))).set_ns_attributes("manifest", {
 			"full-path":	"/",
-			"version":		"1.2",
+			"version":		cls._ODF_VERSION,
 			"media-type":	"application/vnd.oasis.opendocument.spreadsheet",
 		})
 		XMLNode(manifest.appendChild(manifest_doc.createElement("manifest:file-entry"))).set_ns_attributes("manifest", {
