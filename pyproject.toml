@@ -1,0 +1,30 @@
+[build-system]
+requires = [ "setuptools>=77.0.3" ]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "odsexport"
+license = "GPL-3.0"
+version = "0.0.6rc0"
+description = "Python-native ODS writer library"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [ { name = "Johannes Bauer", email = "joe@johannes-bauer.com" } ]
+keywords = [ "python", "ods", "export", "odf", "excel", "spreadsheet" ]
+classifiers = [
+	"Programming Language :: Python :: 3",
+]
+dependencies = [ ]
+
+[project.urls]
+Homepage = "https://github.com/johndoe31415/odsexport"
+Repository = "https://github.com/johndoe31415/odsexport.git"
+Issues = "https://github.com/johndoe31415/odsexport/issues"
+Releases = "https://github.com/johndoe31415/odsexport/tags"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+include-package-data = false
+
+[tool.setuptools.packages.find]
+where = [ "src" ]
