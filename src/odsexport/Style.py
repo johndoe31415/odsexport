@@ -1,5 +1,5 @@
 #	odsexport - Python-native ODS writer library
-#	Copyright (C) 2024-2024 Johannes Bauer
+#	Copyright (C) 2024-2026 Johannes Bauer
 #
 #	This file is part of odsexport.
 #
@@ -29,6 +29,13 @@ class Font():
 	size_pt: int | None = None
 	color: str | None = None
 	name: str | None = None
+
+	def __add__(self, other: Font) -> Font:
+		return Font(bold = self.bold,
+				   italic = self.italic,
+				   size_pt = self.size_pt or other.size_pt,
+				   color = self.color or other.color,
+				   name = self.name or other.name)
 
 class DataStyle(): pass
 
@@ -93,6 +100,16 @@ class CellStyle():
 	data_style: DataStyle | None = None
 	background_color: str | None = None
 	border: BorderStyle | None = None
+
+	def __add__(self, other: CellStyle) -> CellStyle:
+		return CellStyle(font = self.font + other.font,
+				   halign = self.halign or other.halign,
+				   valign = self.valign or other.valign,
+				   rotation_angle = self.rotation_angle or other.rotation_angle,
+				   wrap = self.wrap,
+				   data_style = self.data_style or other.data_style,
+				   background_color = self.background_color or other.background_color,
+				   border = self.border or other.border)
 
 @dataclasses.dataclass(eq = True, frozen = True)
 class FormatCondition():
