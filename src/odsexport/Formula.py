@@ -1,5 +1,5 @@
 #	odsexport - Python-native ODS writer library
-#	Copyright (C) 2024-2024 Johannes Bauer
+#	Copyright (C) 2024-2026 Johannes Bauer
 #
 #	This file is part of odsexport.
 #
@@ -21,6 +21,7 @@
 
 import dataclasses
 from .Enums import CellValueType
+from .CellRange import CellRange
 
 @dataclasses.dataclass
 class Formula():
@@ -51,37 +52,44 @@ class Formula():
 
 	@classmethod
 	def subtotal(cls, function_name: str, cell_range: str):
-		return f"SUBTOTAL({cls.__SUBTOTAL_IDS[function_name]};{cell_range})"
+		return f"SUBTOTAL({cls.__SUBTOTAL_IDS[function_name]};{cell_range:b})"
 
 	@classmethod
-	def subtotal_variant(cls, function_name: str, cell_range: str, subtotal = False):
+	def subtotal_variant(cls, function_name: str, cell_range: CellRange, subtotal = False):
+		assert(isinstance(cell_range, CellRange))
 		if not subtotal:
-			return f"{function_name}({cell_range})"
+			return f"{function_name}({cell_range:b})"
 		else:
 			return cls.subtotal(function_name, cell_range)
 
 	@classmethod
-	def average(cls, cell_range: str, subtotal = False):
+	def average(cls, cell_range: CellRange, subtotal = False):
+		assert(isinstance(cell_range, CellRange))
 		return cls.subtotal_variant("AVERAGE", cell_range, subtotal = subtotal)
 
 	@classmethod
-	def count(cls, cell_range: str, subtotal = False):
+	def count(cls, cell_range: CellRange, subtotal = False):
+		assert(isinstance(cell_range, CellRange))
 		return cls.subtotal_variant("COUNT", cell_range, subtotal = subtotal)
 
 	@classmethod
-	def sum(cls, cell_range: str, subtotal = False):
+	def sum(cls, cell_range: CellRange, subtotal = False):
+		assert(isinstance(cell_range, CellRange))
 		return cls.subtotal_variant("SUM", cell_range, subtotal = subtotal)
 
 	@classmethod
-	def max(cls, cell_range: str, subtotal = False):
+	def max(cls, cell_range: CellRange, subtotal = False):
+		assert(isinstance(cell_range, CellRange))
 		return cls.subtotal_variant("MAX", cell_range, subtotal = subtotal)
 
 	@classmethod
-	def min(cls, cell_range: str, subtotal = False):
+	def min(cls, cell_range: CellRange, subtotal = False):
+		assert(isinstance(cell_range, CellRange))
 		return cls.subtotal_variant("MIN", cell_range, subtotal = subtotal)
 
 	@classmethod
-	def average_when_have_values(cls, cell_range: str, subtotal = False):
+	def average_when_have_values(cls, cell_range: CellRange, subtotal = False):
+		assert(isinstance(cell_range, CellRange))
 		return cls.if_then_else(
 			if_condition = f"{cls.count(cell_range, subtotal = subtotal)}>0",
 			then_value = cls.average(cell_range, subtotal = subtotal),

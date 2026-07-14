@@ -20,6 +20,7 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
+import math
 import random
 import datetime
 import odsexport
@@ -185,6 +186,25 @@ def create_conditional_formatting_image(doc):
 		conditions.append(odsexport.FormatCondition(condition = f"={index}", cell_style = odsexport.CellStyle(background_color = f"#{color}")))
 	sheet.apply_conditional_format(odsexport.ConditionalFormat(target = cell_range, conditions = conditions))
 
+def create_conditional_formatting_multi_format(doc):
+	sheet = doc.new_sheet("Conditional Multi-Format")
+	writer = sheet.writer()
+	writer.writerow([ "1 Decimal", "3 Decimals", "% 1 Dec", "% 2 Dec" ])
+	range_start = writer.cursor
+	for x in range(1, 20):
+		writer.write(70 * math.sin(x), style = odsexport.CellStyle(data_style = odsexport.DataStyleNumber.fixed(1)))
+		writer.write(math.sin(10 * x), style = odsexport.CellStyle(data_style = odsexport.DataStyleNumber.fixed(3)))
+		writer.write(math.sin(x + 4) % 2, style = odsexport.CellStyle(data_style = odsexport.DataStylePercent.fixed(1)))
+		writer.write(math.sin(x + 5) % 0.4, style = odsexport.CellStyle(data_style = odsexport.DataStylePercent.fixed(2)))
+		range_end = writer.cursor.left
+		writer.advance()
+
+	cell_range = odsexport.CellRange(range_start, range_end)
+	sheet.apply_conditional_format(odsexport.ConditionalFormat(target = cell_range, condition_type = odsexport.ConditionType.Formula, conditions = (
+		odsexport.FormatCondition(condition = f"{cell_range.src:cb}<-10", cell_style = odsexport.CellStyle(background_color = "#ff0000")),
+		odsexport.FormatCondition(condition = f"{cell_range.src:cb}>10", cell_style = odsexport.CellStyle(background_color = "#00ff00")),
+	)))
+
 def create_simple_sheet(doc):
 	sheet = doc.new_sheet("Simple row-writer")
 	writer = sheet.writer()
@@ -227,14 +247,15 @@ def create_data_table(doc):
 	data_range = cell_range.sub_range(x_offset = 3, y_offset = 1, height = -1, width = 1)
 
 	writer.cursor = writer.cursor.rel(x_offset = 2, y_offset = 1)
-	writer.writerow([ "Average:", odsexport.Formula(odsexport.Formula.average_when_have_values(f"{data_range:b}", subtotal = True)) ])
-	writer.writerow([ "Sum:", odsexport.Formula(odsexport.Formula.sum(f"{data_range:b}", subtotal = True)) ])
+	writer.writerow([ "Average:", odsexport.Formula(odsexport.Formula.average_when_have_values(data_range, subtotal = True)) ])
+	writer.writerow([ "Sum:", odsexport.Formula(odsexport.Formula.sum(data_range, subtotal = True)) ])
 
 doc = odsexport.ODSDocument()
 reference_cell = create_format_sheet(doc)
 create_formula_sheet(doc, reference_cell)
 create_conditional_formatting_sheet(doc)
 create_conditional_formatting_image(doc)
+create_conditional_formatting_multi_format(doc)
 create_simple_sheet(doc)
 create_internal_function_sheet(doc)
 create_data_table(doc)
