@@ -429,21 +429,30 @@ class ODSWriter():
 		cond_id = 0
 		for sheet in sheets:
 			for conditional_format in sheet.conditional_formats:
-				conditional_format_class = f"cond{cond_id}"
+				conditional_format_styles = { }
 				for cell in conditional_format.target.iter_cells(sheet):
-					cell.conditional_format_class = conditional_format_class
-				style_node = self._create_style_node(conditional_format_class, "table-cell", self.content_automatic_styles)
-				for condition in conditional_format.conditions:
-					cond_node = style_node.appendChild(self.content_document.createElement("style:map"))
-					cond_node.setAttributeNS("style", "style:apply-style-name", self._style_id(condition.cell_style, self._serialize_global_cell_style, object_prefix = "glbl"))
-					if conditional_format.condition_type == ConditionType.CellValue:
-						cond_node.setAttributeNS("style", "style:condition", f"cell-content(){condition.condition}")
-					elif conditional_format.condition_type == ConditionType.Formula:
-						cond_node.setAttributeNS("style", "style:condition", f"is-true-formula({condition.condition})")
+					if cell.current_style not in conditional_format_styles:
+						conditional_format_class = f"cond{cond_id}_{len(conditional_format_styles)}"
+						conditional_format_styles[cell.current_style] = conditional_format_class
 					else:
-						raise TypeError(f"Unknown type: {condition.condition.type}")
-					base_cell = conditional_format.base_cell if (conditional_format.base_cell is not None) else conditional_format.target.src
-					cond_node.setAttributeNS("style", "style:base-cell-address", format(base_cell, "a"))
+						conditional_format_class = conditional_format_styles[cell.current_style]
+					cell.conditional_format_class = conditional_format_class
+
+				for (parent_style, conditional_format_class) in conditional_format_styles.items():
+					style_node = self._create_style_node(conditional_format_class, "table-cell", self.content_automatic_styles)
+					if (parent_style is not None) and (parent_style.data_style is not None):
+						style_node.setAttributeNS("style", "style:data-style-name", self._style_id(parent_style.data_style, self._serialize_data_style))
+					for condition in conditional_format.conditions:
+						cond_node = style_node.appendChild(self.content_document.createElement("style:map"))
+						cond_node.setAttributeNS("style", "style:apply-style-name", self._style_id(condition.cell_style, self._serialize_global_cell_style, object_prefix = "glbl"))
+						if conditional_format.condition_type == ConditionType.CellValue:
+							cond_node.setAttributeNS("style", "style:condition", f"cell-content(){condition.condition}")
+						elif conditional_format.condition_type == ConditionType.Formula:
+							cond_node.setAttributeNS("style", "style:condition", f"is-true-formula({condition.condition})")
+						else:
+							raise TypeError(f"Unknown type: {condition.condition.type}")
+						base_cell = conditional_format.base_cell if (conditional_format.base_cell is not None) else conditional_format.target.src
+						cond_node.setAttributeNS("style", "style:base-cell-address", format(base_cell, "a"))
 				cond_id += 1
 
 	def _serialize_metadata(self):
