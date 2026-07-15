@@ -42,6 +42,9 @@ class CellRange():
 		self._src_cell = src_cell.sheet[(x1, y1)]
 		self._dest_cell = src_cell.sheet[(x2, y2)]
 
+	@property
+	def sheet(self):
+		return self.src.sheet
 
 	@classmethod
 	def parse(cls, sheet: "Sheet", str_definition: str):

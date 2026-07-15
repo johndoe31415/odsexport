@@ -24,7 +24,11 @@ import dataclasses
 from .Enums import CellValueType
 from .Style import CellStyle, BorderStyle
 from .CellRange import CellRange
-from .Formula import Formula
+
+@dataclasses.dataclass
+class Formula():
+	value: str | Expression
+	value_type: CellValueType = CellValueType.Float
 
 class Cell():
 	def __init__(self, sheet: "Sheet", position: tuple[int, int]):
@@ -98,7 +102,7 @@ class Cell():
 		self._content = content
 		return self
 
-	def set_formula(self, formula_content: str, value_type = CellValueType.Float):
+	def set_formula(self, formula_content: str | Expression, value_type = CellValueType.Float):
 		self._content = Formula(value = formula_content, value_type = value_type)
 		return self
 

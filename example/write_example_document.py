@@ -23,6 +23,7 @@
 import math
 import random
 import datetime
+import fractions
 import odsexport
 
 def create_format_sheet(doc):
@@ -70,27 +71,28 @@ def create_formula_sheet(doc, reference_cell):
 
 	sheet.style_column(0, odsexport.ColStyle(width = "4cm"))
 	sheet[(0, 0)].set("Imported value:").style(bold_style)
-	cell = sheet[(1, 0)].set_formula(f"{reference_cell:ab}")
+	cell = sheet[(1, 0)].set_formula(odsexport.CellRef(reference_cell))
 
 	left = sheet[(0, 1)].set("Computed value 1:").style(bold_style)
-	right = sheet[(1, 1)].set_formula(f"({cell:b}*2/3) + 123 + Pi()")
+	right = sheet[(1, 1)].set_formula((odsexport.CellRef(cell) * 2 / 3) + 123 + odsexport.Function("Pi"))
+	right = sheet[(2, 1)].set_formula(f"({cell:b}*2/3) + 123 + Pi()")	# This can be used, but is discouraged
 	cell = right
 
 	left = sheet[(0, 2)].set("Computed value 2:").style(bold_style)
-	right = sheet[(1, 2)].set_formula(f"{cell:b}/300")
+	right = sheet[(1, 2)].set_formula(odsexport.CellRef(cell) / 300)
 	cell2 = right
 
 	for num in range(6):
 		left = left.down
 		right = right.down
 		left.set(f"Rounded with {num} digits:").style(bold_style)
-		right.set_formula(f"{cell:b}").style(odsexport.CellStyle(data_style = odsexport.DataStyleNumber.fixed(num)))
+		right.set_formula(odsexport.CellRef(cell)).style(odsexport.CellStyle(data_style = odsexport.DataStyleNumber.fixed(num)))
 
 	for num in range(3):
 		left = left.down
 		right = right.down
 		left.set(f"Percent with {num} digits:").style(bold_style)
-		right.set_formula(f"{cell2:b}").style(odsexport.CellStyle(data_style = odsexport.DataStylePercent.fixed(num)))
+		right.set_formula(odsexport.CellRef(cell2)).style(odsexport.CellStyle(data_style = odsexport.DataStylePercent.fixed(num)))
 
 	now = datetime.datetime.now()
 	left = left.down
@@ -102,6 +104,14 @@ def create_formula_sheet(doc, reference_cell):
 	right = right.down
 	left.set("Datetime as German:").style(bold_style)
 	right.set(now).style(odsexport.CellStyle(data_style = odsexport.DataStyleDateTime(parts = ("%d", ".", "%m", ".", "%Y", " ", "%H", ":", "%M"))))
+
+	writer = sheet.writer(left.down.down)
+	writer.writerow([ "Radius of cylinder:", 40, "mm" ])
+	writer.writerow([ "Height of cylinder:", 120, "mm" ])
+	radius_cell = writer.cursor.up.up.right
+	height_cell = radius_cell.down
+	cylinder_volume = (odsexport.CellRef(radius_cell) ** 2) * 3.1415 * height_cell
+	writer.writerow([ "Volume of cylinder:", cylinder_volume, "mm³" ])
 
 def create_conditional_formatting_sheet(doc):
 	sheet = doc.new_sheet("Conditional Formatting")
@@ -210,22 +220,26 @@ def create_simple_sheet(doc):
 	writer = sheet.writer()
 	writer.writerow([ "Value", "Pi*Value", "Hex", "Formula" ])
 	for i in range(10):
-		row = [ i, i * 3.1415, f"{i:#04x}", odsexport.Formula(f"[.B{i+2}]*4") ]
+		cell = sheet[f"B{i+2}"]
+		row = [ i, i * 3.1415, f"{i:#04x}", (odsexport.CellRef(cell) + 2) * 4 ]
 		writer.writerow(row)
 
 def create_internal_function_sheet(doc):
-	sheet = doc.new_sheet("High-level functions")
+	sheet = doc.new_sheet("Symmetric rounding")
 	writer = sheet.writer()
-	writer.writerow([ "Value", "ROUND(x; 1)", "ROUND_HALF_TO_EVEN(x; 1)", "Difference" ])
+	writer.writerow([ "Value", "Excel ROUND", "Python float round()", "Python exact round()", "odsexport round()", "Difference", "OK?" ])
 	for i in range(121):
 		value = (i - 60) / 100
-
+		exact_value = fractions.Fraction(i - 60, 100)
 		writer.write(value)
-		cell = writer.last_cursor
 
-		writer.write(odsexport.Formula(f"ROUND({cell:b};1)"))
-		writer.write(odsexport.Formula(odsexport.Formula.round_half_to_even(f"{cell:b}", 1)))
-		writer.write(odsexport.Formula(f"{writer.last_cursor.left:b}-{writer.last_cursor:b}"))
+		cellref = odsexport.CellRef(writer.last_cursor)
+		writer.write(cellref.round(1))
+		writer.write(round(value, 1))
+		writer.write(float(round(exact_value, 1)))
+		writer.write(round(cellref, 1))
+		writer.write(odsexport.CellRef(writer.last_cursor.left) - writer.last_cursor)
+		writer.write((odsexport.CellRef(writer.last_cursor) != 0).then("ERROR", else_value = ""))
 		writer.advance()
 
 def create_data_table(doc):
@@ -247,8 +261,12 @@ def create_data_table(doc):
 	data_range = cell_range.sub_range(x_offset = 3, y_offset = 1, height = -1, width = 1)
 
 	writer.cursor = writer.cursor.rel(x_offset = 2, y_offset = 1)
-	writer.writerow([ "Average:", odsexport.Formula(odsexport.Formula.average_when_have_values(data_range, subtotal = True)) ])
-	writer.writerow([ "Sum:", odsexport.Formula(odsexport.Formula.sum(data_range, subtotal = True)) ])
+	data_range = odsexport.CellRef(data_range)
+	writer.writerow([ "Average unless no data:", data_range.average_unless_no_data() ])
+	writer.writerow([ "Average:", data_range.average() ])
+	writer.writerow([ "Sum:", data_range.sum() ])
+	writer.writerow([ "Min:", data_range.min() ])
+	writer.writerow([ "Max:", data_range.max() ])
 
 doc = odsexport.ODSDocument()
 reference_cell = create_format_sheet(doc)

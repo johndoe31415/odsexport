@@ -24,6 +24,8 @@ import enum
 import string
 from .Cell import Cell
 from .CellRange import CellRange
+from .Enums import CellValueType
+from .Formula import Expression
 
 class SheetWriter():
 	class Mode(enum.IntEnum):
@@ -89,10 +91,13 @@ class SheetWriter():
 			self._position[1] = self._initial_position[1]
 		return self
 
-	def write(self, *values: str | float, style: "DataStyle | CellStyle | None" = None):
+	def write(self, *values: str | float, style: "DataStyle | CellStyle | None" = None, formula_value_type = CellValueType.Float):
 		"""Write some value(s) and style it/them accordingly."""
 		for value in values:
-			self.cursor.set(value)
+			if isinstance(value, Expression):
+				self.cursor.set_formula(value, formula_value_type)
+			else:
+				self.cursor.set(value)
 			if style is not None:
 				self.cursor.style(style)
 			self._last_cursor = self.cursor

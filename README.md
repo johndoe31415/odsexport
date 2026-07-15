@@ -24,7 +24,8 @@ characters that are understood:
   - `c`: Pin the column. I.e., instead of `G4`, it will produce `$G4`.
   - `r`: Pin the row. I.e., instead of `G4`, it will produce `G$4`.
   - `b`: Put the cell expression in braces, e.g., produce `[.G4]` instead of
-    `G4`. This is required inside all fomula expressions.
+    `G4`. This is required inside all fomula expressions which are manually
+    created and will lead to subtle errors if omitted.
 
 All of these can be combined, here is an example of a sheet "Sheet" with cell
 `G4`:
@@ -38,13 +39,27 @@ All of these can be combined, here is an example of a sheet "Sheet" with cell
 
 
 ## Formulas
-Inside formulas, brace notation must be used for all cell references. odsexport
-does treat all formulas just as strings and acts completely dumb. It will
-happily accept anything you throw at it. However, note that a misformatted
-formula (e.g., a cell that uses `Sheet.G4` instead of the correct `[Sheet.G4]`)
-will lead to interoperability issues. OpenOffice will read such a document just
-fine while Excel will reject it and throw an error. **It is the responsibility
-of the odsexport user to use cell references correctly.**
+odsexport offers a thin layer of expressions so that Pythonic formula references can be used
+in an operator-overloaded manner. When those formulas and cell references are used, the cell notation is automatically
+put in braces. For example, this is a valid construct:
+
+```python3
+cylinder_volume = (odsexport.CellRef(radius_cell) ** 2) * 3.1415 * height_cell
+```
+
+Note that you only need to wrap the cell into an expression once (here, using
+`odsexport.CellRef`), then subsequent mathematical operations are automatically
+wrapped.
+
+You can also completely manually write the formulas as strings. Inside such
+formulas, brace notation must be used for all cell references. odsexport does
+treat formulas which are provided as strings as-is and acts completely dumb
+with them. It will happily accept anything you throw at it. However, note that
+a misformatted formula (e.g., a cell that uses `Sheet.G4` instead of the
+correct `[Sheet.G4]`) will lead to interoperability issues. OpenOffice will
+read such a document just fine while Excel will reject it and throw an error.
+**It is the responsibility of the odsexport user to use cell references
+correctly when using manual formulas.**
 
 
 ## Rant
