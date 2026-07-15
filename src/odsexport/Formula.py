@@ -86,27 +86,34 @@ class Expression():
 			ndigits = 0
 		return self.sign() * (self.abs()._symmetric_round_positive_value(ndigits))
 
-	def subttotal(self, function_name: str, include_hidden_cells: bool = True):
+	def subtotal(self, function_name: str, include_hidden_cells: bool = False):
 		return self._Function.subtotal(function_name, self, include_hidden_cells = include_hidden_cells)
 
-	def min(self):
-		return self._Function("MIN", self)
+	def min(self, include_hidden_cells: bool = False):
+		return self._possibly_subtotal("MIN", include_hidden_cells = include_hidden_cells)
 
-	def max(self):
-		return self._Function("MAX", self)
+	def max(self, include_hidden_cells: bool = False):
+		return self._possibly_subtotal("MAX", include_hidden_cells = include_hidden_cells)
 
-	def sum(self):
-		return self._Function("SUM", self)
+	def sum(self, include_hidden_cells: bool = False):
+		return self._possibly_subtotal("SUM", include_hidden_cells = include_hidden_cells)
 
-	def count(self):
-		return self._Function("COUNT", self)
+	def count(self, include_hidden_cells: bool = False):
+		return self._possibly_subtotal("COUNT", include_hidden_cells = include_hidden_cells)
 
-	def average(self):
-		return self._Function("AVERAGE", self)
+	def _possibly_subtotal(self, function_name: str, include_hidden_cells: bool = False):
+		if not include_hidden_cells:
+			return self.subtotal(function_name, include_hidden_cells = False)
+		else:
+			# Raw function always include all cells, even filtered/hidden ones.
+			return self._Function(function_name, self)
 
-	def average_unless_no_data(self, no_data_replacement: Expression | str = ""):
-		condition = self.count() > 0
-		return condition.then(self.average(), else_value = no_data_replacement)
+	def average(self, include_hidden_cells: bool = False):
+		return self._possibly_subtotal("AVERAGE", include_hidden_cells = include_hidden_cells)
+
+	def average_unless_no_data(self, no_data_replacement: Expression | str = "", include_hidden_cells: bool = False):
+		condition = self.count(include_hidden_cells = include_hidden_cells) > 0
+		return condition.then(self.average(include_hidden_cells = include_hidden_cells), else_value = no_data_replacement)
 
 	def abs(self):
 		return self._Function("ABS", self)
@@ -203,7 +210,7 @@ class Function(Expression):
 		return f"{self._name}({';'.join(arg.render(sheet) for arg in self._args)})"
 
 	@classmethod
-	def subtotal(cls, function_name: str, argument: Expression, include_hidden_cells: bool = True):
+	def subtotal(cls, function_name: str, argument: Expression, include_hidden_cells: bool = False):
 		function_id = cls.__SUBTOTAL_IDS[function_name]
 		if not include_hidden_cells:
 			function_id += 100
