@@ -26,19 +26,32 @@ class Expression():
 	_BinaryOperation = None
 	_Constant = None
 	_Function = None
+	_FunctionArgument = None
 	_CellRef = None
 
 	def __add__(self, other: Expression):
 		return self._BinaryOperation(lhs = self, op = "+", rhs = other)
 
+	def __radd__(self, other: Expression):
+		return self + other
+
 	def __sub__(self, other: Expression):
 		return self._BinaryOperation(lhs = self, op = "-", rhs = other)
+
+	def __rsub__(self, other: Expression):
+		return self.wrap(other) - self
 
 	def __mul__(self, other: Expression):
 		return self._BinaryOperation(lhs = self, op = "*", rhs = other)
 
+	def __rmul__(self, other: Expression):
+		return self * other
+
 	def __truediv__(self, other: Expression):
 		return self._BinaryOperation(lhs = self, op = "/", rhs = other)
+
+	def __rtruediv__(self, other: Expression):
+		return self.wrap(other) / self
 
 	def __mod__(self, other: Expression):
 		return self._Function("MOD", self, other)
@@ -133,6 +146,9 @@ class Expression():
 		else:
 			return self._Function("ROUND", self, ndigits)
 
+	def round_up(self):
+		return self._Function("ROUNDUP", self)
+
 	def clamp(self, min_value: Expression, max_value: Expression):
 		return self._Function("MEDIAN", min_value, self, max_value)
 
@@ -142,9 +158,25 @@ class Expression():
 		else:
 			return self._Function("IF", self, then_value, else_value)
 
+	def count_if(self, *args):
+		if (len(args) % 2) != 0:
+			raise ValueError("Arguments of count_if need to be of even count.")
+		if len(args) == 0:
+			raise ValueError("Argument to count_if is mandatory")
+
+		function_args = [ ]
+		for (operator, comparator) in zip(args[::2], args[1::2]):
+			function_args.append(self)
+			if isinstance(comparator, (self._CellRef, Cell, CellRange)):
+				parts = [ self.wrap(operator), " &", self.wrap(comparator) ]
+			else:
+				parts = [ self.wrap(f"{operator} {comparator}") ]
+			function_args.append(self._FunctionArgument(*parts))
+		return self._Function("COUNTIFS", *function_args)
+
 	@classmethod
 	def wrap(cls, value: Expression | int | float | bool | str | Cell | CellRange):
-		if isinstance(value, Expression):
+		if isinstance(value, (Expression, cls._FunctionArgument)):
 			return value
 		elif isinstance(value, (int, float, bool, str)):
 			return cls._Constant(value)
@@ -199,10 +231,19 @@ class CellRef(Expression):
 Expression._CellRef = CellRef
 
 
+class FunctionArgument():
+	def __init__(self, *parts: list[str | Expression]):
+		self._parts = parts
+
+	def render(self, sheet: Sheet):
+		return "".join((part if isinstance(part, str) else part.render(sheet)) for part in self._parts)
+Expression._FunctionArgument = FunctionArgument
+
+
 class Function(Expression):
 	__SUBTOTAL_IDS = { name: fnc_id for (fnc_id, name) in enumerate([ "AVERAGE", "COUNT", "COUNTA", "MAX", "MIN", "PRODUCT", "STDEV", "STDEVP", "SUM", "VAR", "VARP" ], 1) }
 
-	def __init__(self, name: str, *args: list[Expression]):
+	def __init__(self, name: str, *args: list[Expression | FunctionArgument]):
 		self._name = name
 		self._args = [ Expression.wrap(arg) for arg in args ]
 

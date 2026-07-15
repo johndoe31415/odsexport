@@ -372,13 +372,15 @@ class ODSWriter():
 			if isinstance(cell.content.value, str):
 				formula_str = cell.content.value
 			else:
+				if not hasattr(cell.content.value, "render"):
+					raise ValueError(f"Formula value has unrenderable type \"{type(cell.content.value).__name__}\" in cell {cell} of \"{cell.sheet.name}\": {cell.content.value}")
 				formula_str = cell.content.value.render(cell.sheet)
 			cell_node.setAttributeNS("table", "table:formula", f"of:={formula_str}")
 		elif isinstance(cell.content, datetime.datetime):
 			cell_node.setAttributeNS("office", "office:value-type", "date")
 			cell_node.setAttributeNS("office", "office:date-value", cell.content.strftime("%Y-%m-%dT%H:%M:%S"))
 		else:
-			raise ValueError(f"Unknown cell type of class \"{type(cell.content).__name__}\": {cell.content}")
+			raise ValueError(f"Unknown cell type of class \"{type(cell.content).__name__}\" in cell {cell} of \"{cell.sheet.name}\": {cell.content}")
 
 	def _serialize_sheet(self, sheet: "Sheet"):
 		table_node = self.content_body.appendChild(self.content_document.createElement("table:table"))
