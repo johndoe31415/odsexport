@@ -29,64 +29,10 @@ from .XMLNode import XMLNode
 from .Cell import Formula
 from .Enums import ConditionType, CellValueType
 from .Style import DataStyleNumber, DataStylePercent, DataStyleDateTime
+from .Namespaces import Namespaces
 
 class ODSWriter():
 	_ODF_VERSION = "1.4"
-
-	_NAMESPACES = {
-		"styles.xml": {
-			"office": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
-			"number": "urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0",
-			"style": "urn:oasis:names:tc:opendocument:xmlns:style:1.0",
-	   		"fo": "urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0",
-		},
-		"manifest.xml": {
-			"manifest": "urn:oasis:names:tc:opendocument:xmlns:manifest:1.0",
-		},
-		"content.xml": {
-			"office": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
-			"chart": "urn:oasis:names:tc:opendocument:xmlns:chart:1.0",
-			"css3t": "http://www.w3.org/TR/css3-text/",
-			"dc": "http://purl.org/dc/elements/1.1/",
-			"dom": "http://www.w3.org/2001/xml-events",
-			"dr3d": "urn:oasis:names:tc:opendocument:xmlns:dr3d:1.0",
-			"draw": "urn:oasis:names:tc:opendocument:xmlns:drawing:1.0",
-			"drawooo": "http://openoffice.org/2010/draw",
-			"field": "urn:openoffice:names:experimental:ooo-ms-interop:xmlns:field:1.0",
-	   		"fo": "urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0",
-			"form": "urn:oasis:names:tc:opendocument:xmlns:form:1.0",
-			"formx": "urn:openoffice:names:experimental:ooxml-odf-interop:xmlns:form:1.0",
-			"grddl": "http://www.w3.org/2003/g/data-view#",
-			"math": "http://www.w3.org/1998/Math/MathML",
-			"meta": "urn:oasis:names:tc:opendocument:xmlns:meta:1.0",
-			"number": "urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0",
-			"of": "urn:oasis:names:tc:opendocument:xmlns:of:1.2",
-			"ooo": "http://openoffice.org/2004/office",
-			"oooc": "http://openoffice.org/2004/calc",
-			"ooow": "http://openoffice.org/2004/writer",
-			"presentation": "urn:oasis:names:tc:opendocument:xmlns:presentation:1.0",
-			"rpt": "http://openoffice.org/2005/report",
-			"script": "urn:oasis:names:tc:opendocument:xmlns:script:1.0",
-			"style": "urn:oasis:names:tc:opendocument:xmlns:style:1.0",
-			"svg": "urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0",
-			"table": "urn:oasis:names:tc:opendocument:xmlns:table:1.0",
-			"tableooo": "http://openoffice.org/2009/table",
-			"text": "urn:oasis:names:tc:opendocument:xmlns:text:1.0",
-			"xforms": "http://www.w3.org/2002/xforms",
-			"xhtml": "http://www.w3.org/1999/xhtml",
-			"xlink": "http://www.w3.org/1999/xlink",
-			"xsd": "http://www.w3.org/2001/XMLSchema",
-			"xsi": "http://www.w3.org/2001/XMLSchema-instance",
-		},
-		"meta.xml": {
-			"grddl": "http://www.w3.org/2003/g/data-view#",
-			"meta": "urn:oasis:names:tc:opendocument:xmlns:meta:1.0",
-			"dc": "http://purl.org/dc/elements/1.1/",
-			"xlink": "http://www.w3.org/1999/xlink",
-			"ooo": "http://openoffice.org/2004/office",
-			"office": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
-		}
-	}
 
 	def __init__(self, doc: "ODSDocument"):
 		self._doc = doc
@@ -141,7 +87,7 @@ class ODSWriter():
 	def __new_styles_doc(cls):
 		styles_doc = xml.dom.minidom.Document()
 		styles = styles_doc.appendChild(styles_doc.createElement("office:document-styles"))
-		for (nsname, nsuri) in cls._NAMESPACES["styles.xml"].items():
+		for (nsname, nsuri) in Namespaces["styles.xml"].items():
 			styles.setAttributeNS("xmlns", f"xmlns:{nsname}", nsuri)
 		styles.setAttributeNS("office", "office:version", cls._ODF_VERSION)
 		styles = styles.appendChild(styles_doc.createElement("office:styles"))
@@ -151,7 +97,7 @@ class ODSWriter():
 	def __new_content_doc(cls):
 		content_doc = xml.dom.minidom.Document()
 		content = content_doc.appendChild(content_doc.createElement("office:document-content"))
-		for (nsname, nsuri) in cls._NAMESPACES["content.xml"].items():
+		for (nsname, nsuri) in Namespaces["content.xml"].items():
 			content.setAttributeNS("xmlns", f"xmlns:{nsname}", nsuri)
 		content.setAttributeNS("office", "office:version", cls._ODF_VERSION)
 
@@ -165,7 +111,7 @@ class ODSWriter():
 	def __new_meta_doc(cls):
 		meta_doc = xml.dom.minidom.Document()
 		doc_meta = meta_doc.appendChild(meta_doc.createElement("office:document-meta"))
-		for (nsname, nsuri) in cls._NAMESPACES["meta.xml"].items():
+		for (nsname, nsuri) in Namespaces["meta.xml"].items():
 			doc_meta.setAttributeNS("xmlns", f"xmlns:{nsname}", nsuri)
 		doc_meta.setAttributeNS("office", "office:version", cls._ODF_VERSION)
 
@@ -176,7 +122,7 @@ class ODSWriter():
 	def __new_manifest_doc(cls):
 		manifest_doc = xml.dom.minidom.Document()
 		manifest = manifest_doc.appendChild(manifest_doc.createElement("manifest:manifest"))
-		for (nsname, nsuri) in cls._NAMESPACES["manifest.xml"].items():
+		for (nsname, nsuri) in Namespaces["manifest.xml"].items():
 			manifest.setAttributeNS("xmlns", f"xmlns:{nsname}", nsuri)
 		manifest.setAttributeNS("manifest", "manifest:version", cls._ODF_VERSION)
 
@@ -464,7 +410,7 @@ class ODSWriter():
 						# Fallback condition if no condition matches: always true
 						cond_node = style_node.appendChild(self.content_document.createElement("style:map"))
 						cond_node.setAttributeNS("style", "style:apply-style-name", self._style_id(parent_style, self._serialize_automatic_cell_style))
-						cond_node.setAttributeNS("style", "style:condition", "1")
+						cond_node.setAttributeNS("style", "style:condition", "is-true-formula(TRUE())")
 						cond_node.setAttributeNS("style", "style:base-cell-address", format(base_cell, "a"))
 
 				cond_id += 1

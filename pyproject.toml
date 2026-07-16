@@ -28,3 +28,6 @@ include-package-data = false
 
 [tool.setuptools.packages.find]
 where = [ "src" ]
+
+[project.scripts]
+odsbutcher = "odsexport.cli.__main__:main"

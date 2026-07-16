@@ -147,7 +147,7 @@ class Expression():
 			return self._Function("ROUND", self, ndigits)
 
 	def round_up(self):
-		return self._Function("ROUNDUP", self)
+		return self._Function("ROUNDUP", self, 0)
 
 	def clamp(self, min_value: Expression, max_value: Expression):
 		return self._Function("MEDIAN", min_value, self, max_value)
