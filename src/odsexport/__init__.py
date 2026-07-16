@@ -46,4 +46,4 @@ from .CellRange import CellRange
 from .ODSDocument import ODSDocument
 from .Sheet import SheetWriter
 
-VERSION = "0.0.6rc0"
+VERSION = "0.1.0"
