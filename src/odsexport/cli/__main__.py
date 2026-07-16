@@ -20,11 +20,12 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import sys
+import odsexport
 from . import FriendlyArgumentParser, MultiCommand
 from .ActionDumpXML import ActionDumpXML
 
 def main():
-	mc = MultiCommand(description = "Perform debugging actions on ODS files")
+	mc = MultiCommand(description = "Perform debugging actions on ODS files", trailing_text = "version: odsexport v%s" % (odsexport.VERSION))
 	def genparser(parser):
 		parser.add_argument("--no-attribute-sort", action = "store_true", help = "Do not sort attributes lexicographically before printing XML.")
 		parser.add_argument("--no-namespace-normalization", action = "store_true", help = "Do not normalize XML namespaces before printing XML.")
@@ -32,7 +33,7 @@ def main():
 		parser.add_argument("-s", "--style-file", action = "store_true", help = "Print style.xml instead of content.xml")
 		parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity. Can be given multiple times.")
 		parser.add_argument("filename", help = "ODS file to dump content from")
-	mc.register("dumpxml", "Dump (or edit) the XML of an ODS file", genparser, action = ActionDumpXML)
+	mc.register("dump", "Dump/edit the XML contained in an ODS file", genparser, action = ActionDumpXML)
 
 	returncode = mc.run(sys.argv[1:])
 	return (returncode or 0)
