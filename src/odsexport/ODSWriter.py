@@ -406,13 +406,6 @@ class ODSWriter():
 						base_cell = conditional_format.base_cell if (conditional_format.base_cell is not None) else conditional_format.target.src
 						cond_node.setAttributeNS("style", "style:base-cell-address", format(base_cell, "a"))
 
-					if parent_style is not None:
-						# Fallback condition if no condition matches: always true
-						cond_node = style_node.appendChild(self.content_document.createElement("style:map"))
-						cond_node.setAttributeNS("style", "style:apply-style-name", self._style_id(parent_style, self._serialize_automatic_cell_style))
-						cond_node.setAttributeNS("style", "style:condition", "is-true-formula(TRUE())")
-						cond_node.setAttributeNS("style", "style:base-cell-address", format(base_cell, "a"))
-
 				cond_id += 1
 
 	def _serialize_metadata(self):

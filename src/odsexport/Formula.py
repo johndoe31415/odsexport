@@ -213,7 +213,7 @@ class BinaryOperation(Expression):
 		self._op = op
 		self._rhs = Expression.wrap(rhs)
 
-	def render(self, sheet: Sheet):
+	def render(self, sheet: Sheet | None = None):
 		return f"({self._lhs.render(sheet)}{self._op}{self._rhs.render(sheet)})"
 Expression._BinaryOperation = BinaryOperation
 
@@ -222,12 +222,17 @@ class CellRef(Expression):
 	def __init__(self, cell: Cell | CellRange):
 		assert(isinstance(cell, (Cell, CellRange)))
 		self._cell = cell
+		self._format_fixer = ""
 
-	def render(self, sheet: Sheet):
+	def fix(self, format_fixer: str):
+		self._format_fixer = format_fixer
+		return self
+
+	def render(self, sheet: Sheet | None = None):
 		if self._cell.sheet == sheet:
-			return format(self._cell, "b")
+			return format(self._cell, "b" + self._format_fixer)
 		else:
-			return format(self._cell, "ba")
+			return format(self._cell, "ba" + self._format_fixer)
 Expression._CellRef = CellRef
 
 
@@ -235,7 +240,7 @@ class FunctionArgument():
 	def __init__(self, *parts: list[str | Expression]):
 		self._parts = parts
 
-	def render(self, sheet: Sheet):
+	def render(self, sheet: Sheet | None = None):
 		return "".join((part if isinstance(part, str) else part.render(sheet)) for part in self._parts)
 Expression._FunctionArgument = FunctionArgument
 
@@ -247,7 +252,7 @@ class Function(Expression):
 		self._name = name
 		self._args = [ Expression.wrap(arg) for arg in args ]
 
-	def render(self, sheet: Sheet):
+	def render(self, sheet: Sheet | None = None):
 		return f"{self._name}({';'.join(arg.render(sheet) for arg in self._args)})"
 
 	@classmethod
