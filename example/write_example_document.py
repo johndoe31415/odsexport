@@ -120,6 +120,9 @@ def create_formula_sheet(doc, reference_cell):
 	formula = ((hour_ref >= 0) & (hour_ref <= 24)).then("Valid", else_value = "Invalid")
 	writer.writerow([ "Hours valid?", formula ])
 
+	writer.cursor.rel(y_offset = -6).make_range(height = 6).style(bold_style)
+	writer.cursor.up.right.style(odsexport.CellStyle(halign = odsexport.HAlign.Right))
+
 
 def create_conditional_formatting_sheet(doc):
 	sheet = doc.new_sheet("Conditional Formatting")
