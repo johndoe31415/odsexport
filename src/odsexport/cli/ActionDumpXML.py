@@ -25,8 +25,8 @@ import tempfile
 import subprocess
 import xml.dom.minidom
 from odsexport.XMLNode import XMLNode
-from .MultiCommand import BaseAction
 from odsexport.Namespaces import Namespaces
+from .MultiCommand import BaseAction
 
 class ActionDumpXML(BaseAction):
 	def _confirm(self, prompt: str):
@@ -83,3 +83,4 @@ class ActionDumpXML(BaseAction):
 				self._update_xml(xmldoc)
 		else:
 			print(pretty_xml.rstrip("\r\n"))
+		return 0

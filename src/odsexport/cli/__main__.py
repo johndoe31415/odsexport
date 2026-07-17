@@ -21,7 +21,7 @@
 
 import sys
 import odsexport
-from . import FriendlyArgumentParser, MultiCommand
+from . import MultiCommand
 from .ActionDumpXML import ActionDumpXML
 
 def main():
@@ -40,4 +40,4 @@ def main():
 
 if __name__ == "__main__":
 	import sys
-	main(sys.argv[1:])
+	main()

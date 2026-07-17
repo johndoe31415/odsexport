@@ -27,7 +27,7 @@ import xml.dom.minidom
 import odsexport
 from .XMLNode import XMLNode
 from .Cell import Formula
-from .Enums import ConditionType, CellValueType
+from .Enums import ConditionType
 from .Style import DataStyleNumber, DataStylePercent, DataStyleDateTime
 from .Namespaces import Namespaces
 
