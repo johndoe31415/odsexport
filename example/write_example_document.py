@@ -62,6 +62,10 @@ def create_format_sheet(doc):
 
 	sheet[(0, 14)].set("Value for next sheet:")
 	cell = sheet[(1, 14)].set(123.456)
+
+	cell_range = sheet[(0, 17)].make_range(3, 3)
+	sheet.merge_cells(cell_range)
+	cell_range.src.set(f"This is a 3x3 grid ({str(cell_range)}).")
 	return cell
 
 def create_formula_sheet(doc, reference_cell):

@@ -127,6 +127,7 @@ class Sheet():
 		self._row_style = { }
 		self._conditional_formats = [ ]
 		self._data_tables = [ ]
+		self._merged_cells = { }
 
 	@property
 	def doc(self):
@@ -182,6 +183,15 @@ class Sheet():
 		if start_cell is None:
 			start_cell = self[(0, 0)]
 		return SheetWriter(start_cell, mode = mode)
+
+	def merge_cells(self, cell_range: CellRange):
+		self._merged_cells[cell_range.src.position] = cell_range
+		for cell in cell_range.iter_cells(self):
+			if cell.position != cell_range.src.position:
+				cell.make_covered()
+
+	def get_merged_range(self, position: tuple[int, int]) -> CellRange | None:
+		return self._merged_cells.get(position)
 
 	def _parse_cell_position(self, cell_position_str: str):
 		rematch = self._CELL_IDENTIFIER_RE.fullmatch(cell_position_str)

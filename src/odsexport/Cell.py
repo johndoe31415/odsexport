@@ -37,6 +37,7 @@ class Cell():
 		self._content = None
 		self._style = None
 		self._conditional_format_class = None
+		self._is_covered = False
 
 	@property
 	def sheet(self):
@@ -58,6 +59,12 @@ class Cell():
 	def content(self):
 		return self._content
 
+	@content.setter
+	def content(self, value):
+		if self._is_covered:
+			raise ValueError("Cell \"{self}\" of sheet {self.sheet.name} is covered and its value cannot be set.")
+		self._content = value
+
 	@property
 	def current_style(self):
 		return self._style
@@ -70,9 +77,19 @@ class Cell():
 	def conditional_format_class(self, format_class: str | None):
 		self._conditional_format_class = format_class
 
+	@property
+	def is_covered(self):
+		return self._is_covered
+
 	@functools.cached_property
 	def cell_id(self):
 		return CellRange(self)
+
+	def make_covered(self):
+		self._is_covered = True
+		self._content = None
+		self._style = None
+		self._conditional_format_class = None
 
 	@property
 	def left(self):
@@ -95,15 +112,15 @@ class Cell():
 		return self._sheet[(x + x_offset, y + y_offset)]
 
 	def clear(self):
-		self._content = None
+		self.content = None
 		return self
 
 	def set(self, content: None | str | int | float | Formula):
-		self._content = content
+		self.content = content
 		return self
 
 	def set_formula(self, formula_content: str | Expression, value_type = CellValueType.Float):
-		self._content = Formula(value = formula_content, value_type = value_type)
+		self.content = Formula(value = formula_content, value_type = value_type)
 		return self
 
 	def style(self, style: "CellStyle | BorderStyle"):

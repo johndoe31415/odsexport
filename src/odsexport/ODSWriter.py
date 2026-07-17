@@ -295,7 +295,10 @@ class ODSWriter():
 		self._create_style_node("dr", "table-row", self.content_automatic_styles)
 		self._create_style_node("dc", "table-column", self.content_automatic_styles)
 
-	def _serialize_cell(self, cell: "Cell", cell_node: "Element"):
+	def _serialize_cell(self, cell: "Cell", cell_node: "Element", merged_range: CellRange | None):
+		if merged_range is not None:
+			cell_node.setAttributeNS("table", "table:number-columns-spanned", str(merged_range.width))
+			cell_node.setAttributeNS("table", "table:number-rows-spanned", str(merged_range.height))
 		if cell.conditional_format_class is not None:
 			cell_node.setAttributeNS("table", "table:style-name", cell.conditional_format_class)
 		elif cell.current_style is not None:
@@ -352,10 +355,13 @@ class ODSWriter():
 				else:
 					row_node.setAttributeNS("table", "table:style-name", "dr")
 			for x in range(sheet._max_x + 1):
-				cell_node = row_node.appendChild(self.content_document.createElement("table:table-cell"))
 				cell = sheet._cells.get((x, y))
+				cell_tag = "table:covered-table-cell" if ((cell is not None) and cell.is_covered) else "table:table-cell"
+				cell_node = row_node.appendChild(self.content_document.createElement(cell_tag))
+				merged_range = sheet.get_merged_range((x, y))		# The CellRange if this is the top left cell of a merged range
 				if cell is not None:
-					self._serialize_cell(cell, cell_node)
+					# Regular cell or covered cell
+					self._serialize_cell(cell, cell_node, merged_range)
 				else:
 					# Non-existent cell/empty
 					cell_node.setAttributeNS("office", "office:value-type", "string")
