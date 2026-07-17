@@ -112,6 +112,14 @@ def create_formula_sheet(doc, reference_cell):
 	height_cell = radius_cell.down
 	cylinder_volume = (odsexport.CellRef(radius_cell) ** 2) * 3.1415 * height_cell
 	writer.writerow([ "Volume of cylinder:", cylinder_volume, "mm³" ])
+	writer.advance()
+
+	writer.writerow([ "Hour value:", 14 ])
+	hour_cell = writer.cursor.up.right
+	hour_ref = odsexport.CellRef(hour_cell)
+	formula = ((hour_ref >= 0) & (hour_ref <= 24)).then("Valid", else_value = "Invalid")
+	writer.writerow([ "Hours valid?", formula ])
+
 
 def create_conditional_formatting_sheet(doc):
 	sheet = doc.new_sheet("Conditional Formatting")

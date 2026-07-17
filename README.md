@@ -49,8 +49,22 @@ cylinder_volume = (odsexport.CellRef(radius_cell) ** 2) * 3.1415 * height_cell
 
 Note that you only need to wrap the cell into an expression once (here, using
 `odsexport.CellRef`), then subsequent mathematical operations are automatically
-wrapped.
+wrapped. Note that you can construct formulas by using Python constructs which
+will be translated into formulas. Even expressions can be written natively in
+Python. Consider this example:
 
+```python3
+hour_ref = odsexport.CellRef(hour_cell)
+formula = ((hour_ref >= 0) & (hour_ref <= 24)).then("Valid", else_value = "Invalid")
+```
+
+Which will render to the Excel formula `=IF(AND(B20>=0;B20<=24);"Valid";"Invalid")`.
+
+Here, the relational operators `<`, `<=`, `>`, `>=`, `==` and `!=` may be used
+as well as `&` for boolean AND, `|` for boolean OR and `~` for boolean NOT.
+
+
+## Manual formulas
 You can also completely manually write the formulas as strings. Inside such
 formulas, brace notation must be used for all cell references. odsexport does
 treat formulas which are provided as strings as-is and acts completely dumb

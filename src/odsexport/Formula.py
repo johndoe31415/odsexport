@@ -23,6 +23,7 @@ from .Cell import Cell
 from .CellRange import CellRange
 
 class Expression():
+	_UnaryOperation = None
 	_BinaryOperation = None
 	_Constant = None
 	_Function = None
@@ -56,6 +57,9 @@ class Expression():
 	def __mod__(self, other: Expression):
 		return self._Function("MOD", self, other)
 
+	def __neg__(self):
+		return self._UnaryOperation("-", self)
+
 	def __pow__(self, other: Expression):
 		return self._BinaryOperation(lhs = self, op = "^", rhs = other)
 
@@ -85,6 +89,9 @@ class Expression():
 
 	def __or__(self, other: Expression):
 		return self._Function("OR", self, other)
+
+	def __invert__(self):
+		return self._Function("NOT", self)
 
 	def _symmetric_round_positive_value(self, ndigits: int):
 		multiplier = 10 ** ndigits
@@ -207,14 +214,62 @@ class Constant(Expression):
 Expression._Constant = Constant
 
 
+class UnaryOperation(Expression):
+	def __init__(self, op: str, rhs: Expression):
+		assert(op == "-")
+		self._op = op
+		self._rhs = Expression.wrap(rhs)
+
+	def render(self, sheet: Sheet | None = None, parent_side: tuple[BinaryOperation,str] | None = None):
+		needs_parenthesis = isinstance(self._rhs, self._BinaryOperation)
+		if needs_parenthesis:
+			return f"-({self._rhs.render(sheet)})"
+		else:
+			return f"-{self._rhs.render(sheet)}"
+Expression._UnaryOperation = UnaryOperation
+
+
 class BinaryOperation(Expression):
 	def __init__(self, lhs: Expression, op: str, rhs: Expression):
 		self._lhs = Expression.wrap(lhs)
 		self._op = op
 		self._rhs = Expression.wrap(rhs)
 
-	def render(self, sheet: Sheet | None = None):
-		return f"({self._lhs.render(sheet)}{self._op}{self._rhs.render(sheet)})"
+	@property
+	def precedence(self):
+		# Note: usually equality operators bind more strongly than relational
+		# operator, but LOL this is Excel
+		return {
+			"=":	10,
+			"<>":	10,
+			"<":	10,
+			"<=":	10,
+			">":	10,
+			">=":	10,
+
+			"+":	20,
+			"-":	20,
+
+			"*":	30,
+			"/":	30,
+
+			"^":	40,
+		}[self._op]
+
+	def render(self, sheet: Sheet | None = None, parent_side: tuple[BinaryOperation,str] | None = None):
+		lhs = self._lhs.render(sheet, parent_side = (self, "left")) if isinstance(self._lhs, (UnaryOperation, BinaryOperation)) else self._lhs.render(sheet)
+		rhs = self._rhs.render(sheet, parent_side = (self, "right")) if isinstance(self._rhs, (UnaryOperation, BinaryOperation)) else self._rhs.render(sheet)
+		expression = f"{lhs}{self._op}{rhs}"
+
+		if parent_side is None:
+			needs_parenthesis = False
+		else:
+			(parent, side) = parent_side
+			needs_parenthesis = (self.precedence < parent.precedence) or ((self.precedence == parent.precedence) and (side == "right") and (self._op not in "+*"))
+
+		if needs_parenthesis:
+			expression = f"({expression})"
+		return expression
 Expression._BinaryOperation = BinaryOperation
 
 

@@ -28,13 +28,36 @@ class ExpressionTests(unittest.TestCase):
 		expr = BinaryOperation(BinaryOperation(1, "+", 2), "+", 3)
 		self.assertEqual(expr.render(), "1+2+3")
 
-	def test_simple_sub1(self):
+		expr = BinaryOperation(1, "+", BinaryOperation(2, "+", 3))
+		self.assertEqual(expr.render(), "1+2+3")
+
+	def test_simple_sub(self):
+		expr = BinaryOperation(BinaryOperation(1, "-", 2), "-", 3)
+		self.assertEqual(expr.render(), "1-2-3")
+
 		expr = BinaryOperation(1, "-", BinaryOperation(2, "-", 3))
 		self.assertEqual(expr.render(), "1-(2-3)")
 
-	def test_simple_sub2(self):
-		expr = BinaryOperation(BinaryOperation(1, "-", 2), "-", 3)
-		self.assertEqual(expr.render(), "1-2-3")
+	def test_simple_mul(self):
+		expr = BinaryOperation(BinaryOperation(1, "*", 2), "*", 3)
+		self.assertEqual(expr.render(), "1*2*3")
+
+		expr = BinaryOperation(1, "*", BinaryOperation(2, "*", 3))
+		self.assertEqual(expr.render(), "1*2*3")
+
+	def test_simple_div(self):
+		expr = BinaryOperation(BinaryOperation(1, "/", 2), "/", 3)
+		self.assertEqual(expr.render(), "1/2/3")
+
+		expr = BinaryOperation(1, "/", BinaryOperation(2, "/", 3))
+		self.assertEqual(expr.render(), "1/(2/3)")
+
+	def test_simple_mul_before_add(self):
+		expr = Constant(1) + Constant(2) * Constant(3)
+		self.assertEqual(expr.render(), "1+2*3")
+
+		expr = (Constant(1) + Constant(2)) * Constant(3)
+		self.assertEqual(expr.render(), "(1+2)*3")
 
 	def test_function(self):
 		expr = Function("FOO", 1, 2, "blah \" muh")
@@ -48,4 +71,18 @@ class ExpressionTests(unittest.TestCase):
 		expr = ((Constant(10) > 20) & (Constant(30) > 40)) | (Constant(50) >= 60)
 		self.assertEqual(expr.render(), "OR(AND(10>20;30>40);50>=60)")
 
+	def test_not(self):
+		expr = ~(Constant(10) > 20)
+		self.assertEqual(expr.render(), "NOT(10>20)")
 
+	def test_neg(self):
+		expr = -(Constant(1) - (Constant(2) - 3))
+		self.assertEqual(expr.render(), "-(1-(2-3))")
+
+	def test_neg(self):
+		# Jesus Christ this is fully legal Excel for you
+		expr = -(Constant(1) - (-2))
+		self.assertEqual(expr.render(), "-(1--2)")
+
+		expr = Constant(1) - (-2)
+		self.assertEqual(expr.render(), "1--2")
