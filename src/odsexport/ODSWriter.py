@@ -295,7 +295,7 @@ class ODSWriter():
 		self._create_style_node("dr", "table-row", self.content_automatic_styles)
 		self._create_style_node("dc", "table-column", self.content_automatic_styles)
 
-	def _serialize_cell(self, cell: "Cell", cell_node: "Element", merged_range: CellRange | None):
+	def _serialize_cell(self, cell: "Cell", cell_node: "Element", merged_range: "CellRange | None"):
 		if merged_range is not None:
 			cell_node.setAttributeNS("table", "table:number-columns-spanned", str(merged_range.width))
 			cell_node.setAttributeNS("table", "table:number-rows-spanned", str(merged_range.height))

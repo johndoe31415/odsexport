@@ -27,7 +27,7 @@ from .CellRange import CellRange
 
 @dataclasses.dataclass
 class Formula():
-	value: str | Expression
+	value: "str | Expression"
 	value_type: CellValueType = CellValueType.Float
 
 class Cell():
@@ -119,7 +119,7 @@ class Cell():
 		self.content = content
 		return self
 
-	def set_formula(self, formula_content: str | Expression, value_type = CellValueType.Float):
+	def set_formula(self, formula_content: "str | Expression", value_type = CellValueType.Float):
 		self.content = Formula(value = formula_content, value_type = value_type)
 		return self
 

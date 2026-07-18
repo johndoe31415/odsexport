@@ -84,9 +84,6 @@ class Expression():
 	def __and__(self, other: Expression):
 		return self._Function("AND", self, other)
 
-	def __and__(self, other: Expression):
-		return self._Function("AND", self, other)
-
 	def __or__(self, other: Expression):
 		return self._Function("OR", self, other)
 
@@ -192,7 +189,7 @@ class Expression():
 		else:
 			raise NotImplementedError(type(value))
 
-	def render(self, sheet: Sheet):
+	def render(self, sheet: "Sheet | None" = None):
 		raise NotImplementedError()
 
 
@@ -200,7 +197,7 @@ class Constant(Expression):
 	def __init__(self, value: int | float | bool | str):
 		self._value = value
 
-	def render(self, sheet: Sheet):
+	def render(self, sheet: "Sheet | None" = None):
 		if isinstance(self._value, bool):
 			return {
 				False:	"FALSE()",
@@ -220,7 +217,7 @@ class UnaryOperation(Expression):
 		self._op = op
 		self._rhs = Expression.wrap(rhs)
 
-	def render(self, sheet: Sheet | None = None, parent_side: tuple[BinaryOperation,str] | None = None):
+	def render(self, sheet: "Sheet | None" = None, parent_side: tuple[BinaryOperation,str] | None = None):
 		needs_parenthesis = isinstance(self._rhs, self._BinaryOperation)
 		if needs_parenthesis:
 			return f"-({self._rhs.render(sheet)})"
@@ -256,7 +253,7 @@ class BinaryOperation(Expression):
 			"^":	40,
 		}[self._op]
 
-	def render(self, sheet: Sheet | None = None, parent_side: tuple[BinaryOperation,str] | None = None):
+	def render(self, sheet: "Sheet | None" = None, parent_side: tuple[BinaryOperation,str] | None = None):
 		lhs = self._lhs.render(sheet, parent_side = (self, "left")) if isinstance(self._lhs, (UnaryOperation, BinaryOperation)) else self._lhs.render(sheet)
 		rhs = self._rhs.render(sheet, parent_side = (self, "right")) if isinstance(self._rhs, (UnaryOperation, BinaryOperation)) else self._rhs.render(sheet)
 		expression = f"{lhs}{self._op}{rhs}"
@@ -283,7 +280,7 @@ class CellRef(Expression):
 		self._format_fixer = format_fixer
 		return self
 
-	def render(self, sheet: Sheet | None = None):
+	def render(self, sheet: "Sheet | None" = None):
 		if self._cell.sheet == sheet:
 			return format(self._cell, "b" + self._format_fixer)
 		else:
@@ -295,7 +292,7 @@ class FunctionArgument():
 	def __init__(self, *parts: list[str | Expression]):
 		self._parts = parts
 
-	def render(self, sheet: Sheet | None = None):
+	def render(self, sheet: "Sheet | None" = None):
 		return "".join((part if isinstance(part, str) else part.render(sheet)) for part in self._parts)
 Expression._FunctionArgument = FunctionArgument
 
@@ -307,7 +304,7 @@ class Function(Expression):
 		self._name = name
 		self._args = [ Expression.wrap(arg) for arg in args ]
 
-	def render(self, sheet: Sheet | None = None):
+	def render(self, sheet: "Sheet | None" = None):
 		return f"{self._name}({';'.join(arg.render(sheet) for arg in self._args)})"
 
 	@classmethod
@@ -323,6 +320,6 @@ class Literal(Expression):
 	def __init__(self, literal_string: str):
 		self._literal_string = literal_string
 
-	def render(self, sheet: Sheet | None = None):
+	def render(self, sheet: "Sheet | None" = None):
 		return self._literal_string
 Expression.CellContent = Literal("cell-content()")

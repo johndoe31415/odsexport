@@ -20,8 +20,7 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import unittest
-from odsexport.Formula import Expression, Constant, BinaryOperation, CellRef, FunctionArgument, Function
-
+from odsexport.Formula import Constant, BinaryOperation, Function
 
 class ExpressionTests(unittest.TestCase):
 	def test_simple_add(self):
@@ -75,11 +74,11 @@ class ExpressionTests(unittest.TestCase):
 		expr = ~(Constant(10) > 20)
 		self.assertEqual(expr.render(), "NOT(10>20)")
 
-	def test_neg(self):
+	def test_neg1(self):
 		expr = -(Constant(1) - (Constant(2) - 3))
 		self.assertEqual(expr.render(), "-(1-(2-3))")
 
-	def test_neg(self):
+	def test_neg2(self):
 		# Jesus Christ this is fully legal Excel for you
 		expr = -(Constant(1) - (-2))
 		self.assertEqual(expr.render(), "-(1--2)")
