@@ -404,11 +404,11 @@ class ODSWriter():
 						cond_node = style_node.appendChild(self.content_document.createElement("style:map"))
 						cond_node.setAttributeNS("style", "style:apply-style-name", self._style_id(condition.cell_style, self._serialize_global_cell_style, object_prefix = "glbl"))
 						if conditional_format.condition_type == ConditionType.CellValue:
-							cond_node.setAttributeNS("style", "style:condition", f"cell-content(){condition.condition}")
+							cond_node.setAttributeNS("style", "style:condition", condition.rendered_expression)
 						elif conditional_format.condition_type == ConditionType.Formula:
-							cond_node.setAttributeNS("style", "style:condition", f"is-true-formula({condition.condition})")
+							cond_node.setAttributeNS("style", "style:condition", f"is-true-formula({condition.rendered_expression})")
 						else:
-							raise TypeError(f"Unknown type: {condition.condition.type}")
+							raise TypeError(f"Unknown conditional format condition type: {condition.condition.type}")
 						base_cell = conditional_format.base_cell if (conditional_format.base_cell is not None) else conditional_format.target.src
 						cond_node.setAttributeNS("style", "style:base-cell-address", format(base_cell, "a"))
 

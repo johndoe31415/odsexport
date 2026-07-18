@@ -143,28 +143,30 @@ def create_conditional_formatting_sheet(doc):
 
 	# Create a simple conditional format with value-dependent evaluation
 	cell_range = odsexport.CellRange(sheet[(0, 0)], sheet[(0, 24)])
-	sheet.apply_conditional_format(odsexport.ConditionalFormat(target = cell_range, conditions = (
-		odsexport.FormatCondition(condition = "<10", cell_style = odsexport.CellStyle(background_color = "#ff0000")),
-		odsexport.FormatCondition(condition = "<20", cell_style = odsexport.CellStyle(background_color = "#0000ff")),
-		odsexport.FormatCondition(condition = "<30", cell_style = odsexport.CellStyle(background_color = "#00ff00")),
+	sheet.apply_conditional_format(odsexport.ConditionalFormat(target = cell_range, condition_type = odsexport.ConditionType.CellValue, conditions = (
+		odsexport.FormatCondition(expression = odsexport.Expression.CellContent < 10, cell_style = odsexport.CellStyle(background_color = "#ff0000")),
+		odsexport.FormatCondition(expression = odsexport.Expression.CellContent < 20, cell_style = odsexport.CellStyle(background_color = "#0000ff")),
+		odsexport.FormatCondition(expression = odsexport.Expression.CellContent < 30, cell_style = odsexport.CellStyle(background_color = "#00ff00")),
 	)))
 
 	# Create a conditional format with a formula that evaluates relative fields
 	# (fixed column mode)
 	cell_range = odsexport.CellRange(sheet[(1, 0)], sheet[(1, 24)])
+	cell_ref = odsexport.CellRef(cell_range.src.left).fix("c")
 	sheet.apply_conditional_format(odsexport.ConditionalFormat(target = cell_range, condition_type = odsexport.ConditionType.Formula, conditions = (
-		odsexport.FormatCondition(condition = f"{cell_range.src.left:acb}<16", cell_style = odsexport.CellStyle(background_color = "#ff0000")),
-		odsexport.FormatCondition(condition = f"{cell_range.src.left:acb}<32", cell_style = odsexport.CellStyle(background_color = "#0000ff")),
+		odsexport.FormatCondition(expression = cell_ref < 16, cell_style = odsexport.CellStyle(background_color = "#ff0000")),
+		odsexport.FormatCondition(expression = cell_ref < 32, cell_style = odsexport.CellStyle(background_color = "#0000ff")),
 	)))
 
 	# Create a conditional format with a formula that evaluates relative fields
 	# (fixed column mode)
 	cell_range = odsexport.CellRange(sheet[(2, 0)], sheet[(2, 24)])
+	cell_ref = odsexport.CellRef(cell_range.src.left.left).fix("c")
 	sheet.apply_conditional_format(odsexport.ConditionalFormat(target = cell_range, condition_type = odsexport.ConditionType.Formula, conditions = (
-		odsexport.FormatCondition(condition = f"{cell_range.src.left.left:acb}<8", cell_style = odsexport.CellStyle(background_color = "#ff0000")),
-		odsexport.FormatCondition(condition = f"{cell_range.src.left.left:acb}<16", cell_style = odsexport.CellStyle(background_color = "#00ff00")),
-		odsexport.FormatCondition(condition = f"{cell_range.src.left.left:acb}<24", cell_style = odsexport.CellStyle(background_color = "#0000ff")),
-		odsexport.FormatCondition(condition = f"{cell_range.src.left.left:acb}<32", cell_style = odsexport.CellStyle(background_color = "#00ffff")),
+		odsexport.FormatCondition(expression = cell_ref < 8, cell_style = odsexport.CellStyle(background_color = "#ff0000")),
+		odsexport.FormatCondition(expression = cell_ref < 16, cell_style = odsexport.CellStyle(background_color = "#00ff00")),
+		odsexport.FormatCondition(expression = cell_ref < 24, cell_style = odsexport.CellStyle(background_color = "#0000ff")),
+		odsexport.FormatCondition(expression = cell_ref < 32, cell_style = odsexport.CellStyle(background_color = "#00ffff")),
 	)))
 
 def create_conditional_formatting_image(doc):
@@ -208,7 +210,7 @@ def create_conditional_formatting_image(doc):
 	cell_range = odsexport.CellRange(sheet[(0, 0)], sheet[(width - 1, height - 1)])
 	conditions = [ ]
 	for (index, color) in colors.items():
-		conditions.append(odsexport.FormatCondition(condition = f"={index}", cell_style = odsexport.CellStyle(background_color = f"#{color}")))
+		conditions.append(odsexport.FormatCondition(expression = odsexport.Expression.CellContent == index, cell_style = odsexport.CellStyle(background_color = f"#{color}")))
 	sheet.apply_conditional_format(odsexport.ConditionalFormat(target = cell_range, conditions = conditions))
 
 def create_conditional_formatting_multi_format(doc):
@@ -225,9 +227,10 @@ def create_conditional_formatting_multi_format(doc):
 		writer.advance()
 
 	cell_range = odsexport.CellRange(range_start, range_end)
+	cell_ref = odsexport.CellRef(cell_range.src).fix("c")
 	sheet.apply_conditional_format(odsexport.ConditionalFormat(target = cell_range, condition_type = odsexport.ConditionType.Formula, conditions = (
-		odsexport.FormatCondition(condition = f"{cell_range.src:cb}<-10", cell_style = odsexport.CellStyle(background_color = "#ff0000")),
-		odsexport.FormatCondition(condition = f"{cell_range.src:cb}>10", cell_style = odsexport.CellStyle(background_color = "#00ff00")),
+		odsexport.FormatCondition(expression = cell_ref < -10, cell_style = odsexport.CellStyle(background_color = "#ff0000")),
+		odsexport.FormatCondition(expression = cell_ref > 10, cell_style = odsexport.CellStyle(background_color = "#00ff00")),
 	)))
 
 def create_simple_sheet(doc):

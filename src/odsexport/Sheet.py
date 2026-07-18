@@ -172,6 +172,8 @@ class Sheet():
 		return self
 
 	def apply_conditional_format(self, conditional_format: "ConditionalFormat"):
+		for condition in conditional_format.conditions:
+			condition.rendered_expression = condition.expression.render(sheet = self)
 		self._conditional_formats.append(conditional_format)
 		return self
 

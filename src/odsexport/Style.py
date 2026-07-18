@@ -111,10 +111,11 @@ class CellStyle():
 				   background_color = self.background_color or other.background_color,
 				   border = self.border or other.border)
 
-@dataclasses.dataclass(eq = True, frozen = True)
+@dataclasses.dataclass(eq = True, frozen = False)
 class FormatCondition():
-	condition: str
+	expression: "Expression"
 	cell_style: CellStyle
+	rendered_expression: str | None = None
 
 @dataclasses.dataclass(eq = True, frozen = True)
 class ConditionalFormat():

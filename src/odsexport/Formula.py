@@ -317,3 +317,12 @@ class Function(Expression):
 			function_id += 100
 		return cls("SUBTOTAL", function_id, argument)
 Expression._Function = Function
+
+
+class Literal(Expression):
+	def __init__(self, literal_string: str):
+		self._literal_string = literal_string
+
+	def render(self, sheet: Sheet | None = None):
+		return self._literal_string
+Expression.CellContent = Literal("cell-content()")
