@@ -1,4 +1,6 @@
 # odsexport
+[![Test status](https://github.com/johndoe31415/odsexport/actions/workflows/tests.yml/badge.svg)](https://github.com/johndoe31415/odsexport/actions/workflows/tests.yml)
+
 odsexport is a Python-native library to create ODS (Open Document Spreadsheet)
 documents. In other words, it lets you script creating "Excel" sheets from
 within Python. The focus is on providing a feature-rich document creation

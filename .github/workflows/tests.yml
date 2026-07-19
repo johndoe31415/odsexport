@@ -1,0 +1,32 @@
+name: tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install build and runtime dependencies
+        run: |
+          pip3 install coverage pylint
+          git clone --depth 1 https://github.com/johndoe31415/jbin
+
+      - name: Install odsexport in venv and test to make sure it works as system package
+        run: |
+          pip3 install .
+          UNITTEST_RUN_ALL="1" python3 -m unittest odsexport.tests
+      
+      - name: Lint code, fail if there are linter errors
+        run: jbin/tpp --lint-code

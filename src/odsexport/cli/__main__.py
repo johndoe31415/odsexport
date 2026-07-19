@@ -39,5 +39,4 @@ def main():
 	return (returncode or 0)
 
 if __name__ == "__main__":
-	import sys
 	main()
