@@ -30,7 +30,7 @@ class Font():
 	color: str | None = None
 	name: str | None = None
 
-	def __add__(self, other: Font) -> Font:
+	def __add__(self, other: "Font") -> "Font":
 		return Font(bold = self.bold,
 				   italic = self.italic,
 				   size_pt = self.size_pt or other.size_pt,
@@ -101,7 +101,7 @@ class CellStyle():
 	background_color: str | None = None
 	border: BorderStyle | None = None
 
-	def __add__(self, other: CellStyle) -> CellStyle:
+	def __add__(self, other: "CellStyle") -> "CellStyle":
 		return CellStyle(font = self.font + other.font,
 				   halign = self.halign or other.halign,
 				   valign = self.valign or other.valign,

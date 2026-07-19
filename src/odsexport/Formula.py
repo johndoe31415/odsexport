@@ -30,61 +30,61 @@ class Expression():
 	_FunctionArgument = None
 	_CellRef = None
 
-	def __add__(self, other: Expression):
+	def __add__(self, other: "Expression"):
 		return self._BinaryOperation(lhs = self, op = "+", rhs = other)
 
-	def __radd__(self, other: Expression):
+	def __radd__(self, other: "Expression"):
 		return self + other
 
-	def __sub__(self, other: Expression):
+	def __sub__(self, other: "Expression"):
 		return self._BinaryOperation(lhs = self, op = "-", rhs = other)
 
-	def __rsub__(self, other: Expression):
+	def __rsub__(self, other: "Expression"):
 		return self.wrap(other) - self
 
-	def __mul__(self, other: Expression):
+	def __mul__(self, other: "Expression"):
 		return self._BinaryOperation(lhs = self, op = "*", rhs = other)
 
-	def __rmul__(self, other: Expression):
+	def __rmul__(self, other: "Expression"):
 		return self * other
 
-	def __truediv__(self, other: Expression):
+	def __truediv__(self, other: "Expression"):
 		return self._BinaryOperation(lhs = self, op = "/", rhs = other)
 
-	def __rtruediv__(self, other: Expression):
+	def __rtruediv__(self, other: "Expression"):
 		return self.wrap(other) / self
 
-	def __mod__(self, other: Expression):
+	def __mod__(self, other: "Expression"):
 		return self._Function("MOD", self, other)
 
 	def __neg__(self):
 		return self._UnaryOperation("-", self)
 
-	def __pow__(self, other: Expression):
+	def __pow__(self, other: "Expression"):
 		return self._BinaryOperation(lhs = self, op = "^", rhs = other)
 
-	def __lt__(self, other: Expression):
+	def __lt__(self, other: "Expression"):
 		return self._BinaryOperation(lhs = self, op = "<", rhs = other)
 
-	def __le__(self, other: Expression):
+	def __le__(self, other: "Expression"):
 		return self._BinaryOperation(lhs = self, op = "<=", rhs = other)
 
-	def __gt__(self, other: Expression):
+	def __gt__(self, other: "Expression"):
 		return self._BinaryOperation(lhs = self, op = ">", rhs = other)
 
-	def __ge__(self, other: Expression):
+	def __ge__(self, other: "Expression"):
 		return self._BinaryOperation(lhs = self, op = ">=", rhs = other)
 
-	def __eq__(self, other: Expression):
+	def __eq__(self, other: "Expression"):
 		return self._BinaryOperation(lhs = self, op = "=", rhs = other)
 
-	def __ne__(self, other: Expression):
+	def __ne__(self, other: "Expression"):
 		return self._BinaryOperation(lhs = self, op = "<>", rhs = other)
 
-	def __and__(self, other: Expression):
+	def __and__(self, other: "Expression"):
 		return self._Function("AND", self, other)
 
-	def __or__(self, other: Expression):
+	def __or__(self, other: "Expression"):
 		return self._Function("OR", self, other)
 
 	def __invert__(self):
@@ -128,7 +128,7 @@ class Expression():
 	def average(self, include_hidden_cells: bool = False):
 		return self._possibly_subtotal("AVERAGE", include_hidden_cells = include_hidden_cells)
 
-	def average_unless_no_data(self, no_data_replacement: Expression | str = "", include_hidden_cells: bool = False):
+	def average_unless_no_data(self, no_data_replacement: "Expression | str" = "", include_hidden_cells: bool = False):
 		condition = self.count(include_hidden_cells = include_hidden_cells) > 0
 		return condition.then(self.average(include_hidden_cells = include_hidden_cells), else_value = no_data_replacement)
 
@@ -153,10 +153,10 @@ class Expression():
 	def round_up(self):
 		return self._Function("ROUNDUP", self, 0)
 
-	def clamp(self, min_value: Expression, max_value: Expression):
+	def clamp(self, min_value: "Expression", max_value: "Expression"):
 		return self._Function("MEDIAN", min_value, self, max_value)
 
-	def then(self, then_value: Expression, else_value: Expression | None = None):
+	def then(self, then_value: "Expression", else_value: "Expression | None" = None):
 		if else_value is None:
 			return self._Function("IF", self, then_value)
 		else:
@@ -179,7 +179,7 @@ class Expression():
 		return self._Function("COUNTIFS", *function_args)
 
 	@classmethod
-	def wrap(cls, value: Expression | int | float | bool | str | Cell | CellRange):
+	def wrap(cls, value: "Expression | int | float | bool | str | Cell | CellRange"):
 		if isinstance(value, (Expression, cls._FunctionArgument)):
 			return value
 		elif isinstance(value, (int, float, bool, str)):
@@ -217,7 +217,7 @@ class UnaryOperation(Expression):
 		self._op = op
 		self._rhs = Expression.wrap(rhs)
 
-	def render(self, sheet: "Sheet | None" = None, parent_side: tuple[BinaryOperation,str] | None = None):
+	def render(self, sheet: "Sheet | None" = None, parent_side: tuple["BinaryOperation",str] | None = None):
 		needs_parenthesis = isinstance(self._rhs, self._BinaryOperation)
 		if needs_parenthesis:
 			return f"-({self._rhs.render(sheet)})"
@@ -253,7 +253,7 @@ class BinaryOperation(Expression):
 			"^":	40,
 		}[self._op]
 
-	def render(self, sheet: "Sheet | None" = None, parent_side: tuple[BinaryOperation,str] | None = None):
+	def render(self, sheet: "Sheet | None" = None, parent_side: tuple["BinaryOperation",str] | None = None):
 		lhs = self._lhs.render(sheet, parent_side = (self, "left")) if isinstance(self._lhs, (UnaryOperation, BinaryOperation)) else self._lhs.render(sheet)
 		rhs = self._rhs.render(sheet, parent_side = (self, "right")) if isinstance(self._rhs, (UnaryOperation, BinaryOperation)) else self._rhs.render(sheet)
 		expression = f"{lhs}{self._op}{rhs}"
