@@ -32,6 +32,10 @@ class Formula():
 
 class Cell():
 	def __init__(self, sheet: "Sheet", position: tuple[int, int]):
+		if position[0] < 0:
+			raise ValueError(f"There may not be a cell left of column A, but tried to access cell at {str(position)} in sheet \"{sheet.name}\"")
+		if position[1] < 0:
+			raise ValueError("There may not be a row above of row 1, but tried to access cell at {str(position)} in sheet \"{sheet.name}\"")
 		self._sheet = sheet
 		self._position = position
 		self._content = None
@@ -62,7 +66,7 @@ class Cell():
 	@content.setter
 	def content(self, value):
 		if self._is_covered:
-			raise ValueError("Cell \"{self}\" of sheet {self.sheet.name} is covered and its value cannot be set.")
+			raise ValueError(f"Cell \"{self}\" of sheet {self.sheet.name} is covered and its value cannot be set.")
 		self._content = value
 
 	@property
