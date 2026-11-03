@@ -44,6 +44,7 @@ def main():
 		mutex = parser.add_mutually_exclusive_group()
 		mutex.add_argument("-s", "--style-file", action = "store_true", help = "Print style.xml instead of content.xml")
 		mutex.add_argument("-f", "--custom-file", metavar = "filename", help = "Print this custom filename (e.g., meta.xml or settings.xml) instead of content.xml")
+		mutex.add_argument("-c", "--diff-command", metavar = "filename", default = "diff", help = "Diff command to use. Defaults to \"%(default)s\".")
 		parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increase verbosity. Can be given multiple times.")
 		parser.add_argument("filename1", help = "First ODS file to create diff from")
 		parser.add_argument("filename2", help = "Second ODS file to create diff from")

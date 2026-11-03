@@ -34,5 +34,5 @@ class ActionDiffXML(BaseAction):
 			f1.flush()
 			f2.write(xml2)
 			f2.flush()
-			subprocess.run([ "diff", f1.name, f2.name ], check = False)
+			subprocess.run([ self._args.diff_command, f1.name, f2.name ], check = False)
 		return 0
