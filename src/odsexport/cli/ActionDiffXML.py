@@ -20,7 +20,6 @@
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
 import zipfile
-import tempfile
 import subprocess
 import tempfile
 import xml.dom.minidom
