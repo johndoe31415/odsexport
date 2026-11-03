@@ -24,9 +24,8 @@ import zipfile
 import tempfile
 import subprocess
 import xml.dom.minidom
-from odsexport.XMLNode import XMLNode
-from odsexport.Namespaces import Namespaces
 from .MultiCommand import BaseAction
+from .Tools import Tools
 
 class ActionDumpXML(BaseAction):
 	def _confirm(self, prompt: str):
@@ -36,18 +35,6 @@ class ActionDumpXML(BaseAction):
 				return True
 			elif yn in "Nn":
 				return False
-
-	def _read_xml(self):
-		with zipfile.ZipFile(self._args.filename, "r") as f:
-			xml_data = f.read(self._xml_filename)
-		document = xml.dom.minidom.parseString(xml_data)
-		if not self._args.no_namespace_normalization:
-			XMLNode.normalize_namespaces(document, Namespaces[self._xml_filename])
-		if not self._args.no_attribute_sort:
-			XMLNode(document).sort_attributes_recursively()
-		XMLNode.remove_text_whitespace(document)
-		pretty_xml = document.toprettyxml(indent = "\t")
-		return pretty_xml
 
 	def _update_xml(self, new_content: bytes):
 		tmp_filename = f"{self._args.filename}.odsbutcher_{os.urandom(8).hex()}"
@@ -60,8 +47,8 @@ class ActionDumpXML(BaseAction):
 		os.rename(tmp_filename, self._args.filename)
 
 	def run(self):
-		self._xml_filename = "styles.xml" if self.args.style_file else "content.xml"
-		pretty_xml = self._read_xml()
+		self._xml_filename = self.args.custom_file if (self.args.custom_file is not None) else ("styles.xml" if self.args.style_file else "content.xml")
+		pretty_xml = Tools.read_xml_from_ods(zip_filename = self.args.filename, xml_filename = self._xml_filename, normalize_namespaces = not self._args.no_namespace_normalization, sort_attributes = not self._args.no_attribute_sort)
 		if self._args.edit_file:
 			with tempfile.NamedTemporaryFile(suffix = ".xml", prefix = "odsbutcher_", mode = "w") as tmp:
 				tmp.write(pretty_xml)
