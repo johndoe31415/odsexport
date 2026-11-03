@@ -34,8 +34,14 @@ class XMLNode():
 			if (child.nodeType == self._node.ELEMENT_NODE) and (child.tagName == tag):
 				yield child
 
-	def get_first_child_with_tag(self, tag: str):
-		return next(self.get_child_with_tag(tag))
+	def get_first_child_with_tag(self, tag: str, create_if_not_exist: bool = False):
+		try:
+			return next(self.get_child_with_tag(tag))
+		except StopIteration:
+			if create_if_not_exist:
+				return self._node.appendChild(self._node.ownerDocument.createElement(tag))
+			else:
+				raise
 
 	def sort_attributes_recursively(self):
 		if self._node.nodeType == self._node.ELEMENT_NODE:

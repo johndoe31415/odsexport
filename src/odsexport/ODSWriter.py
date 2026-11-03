@@ -80,6 +80,14 @@ class ODSWriter():
 		return XMLNode(self.styles_document.childNodes[0]).get_first_child_with_tag("office:styles")
 
 	@functools.cached_property
+	def styles_automatic_styles(self):
+		return XMLNode(self.styles_document.childNodes[0]).get_first_child_with_tag("office:automatic-styles", create_if_not_exist = True)
+
+	@functools.cached_property
+	def styles_master_styles(self):
+		return XMLNode(self.styles_document.childNodes[0]).get_first_child_with_tag("office:master-styles", create_if_not_exist = True)
+
+	@functools.cached_property
 	def meta(self):
 		return XMLNode(self.meta_document.childNodes[0]).get_first_child_with_tag("office:meta")
 
@@ -149,6 +157,10 @@ class ODSWriter():
 		value = self._counters[name]
 		self._counters[name] += 1
 		return value
+
+	def next_identifier(self, name: str):
+		counter = self.next_counter(name)
+		return f"{name}{counter}"
 
 	def _style_id(self, style_object: object, create_hook: "callable", object_prefix: str = "auto"):
 		key = (object_prefix, style_object)
@@ -425,10 +437,36 @@ class ODSWriter():
 			node = self.meta.appendChild(self.meta_document.createElement(key))
 			node.appendChild(self.meta_document.createTextNode(value))
 
+	def _serialize_page_style(self):
+		if self._doc.page_style is None:
+			return
+
+		page_layout = self.styles_automatic_styles.appendChild(self.styles_document.createElement("style:page-layout"))
+		page_layout_name = self.next_identifier("page")
+		page_layout.setAttribute("style:name", page_layout_name)
+
+		page_layout_properties = page_layout.appendChild(self.styles_document.createElement("style:page-layout-properties"))
+		page_layout_properties.setAttribute("style:writing-mode", "lr-tb")
+		page_layout_properties.setAttribute("style:print-orientation", "landscape" if self._doc.page_style.orientation_landscape else "portrait")
+		page_layout_properties.setAttribute("fo:margin-bottom", f"{self._doc.page_style.margins.bottom_mm / 10:.3f}cm")
+		page_layout_properties.setAttribute("fo:margin-left", f"{self._doc.page_style.margins.left_mm / 10:.3f}cm")
+		page_layout_properties.setAttribute("fo:margin-right", f"{self._doc.page_style.margins.right_mm / 10:.3f}cm")
+		page_layout_properties.setAttribute("fo:margin-top", f"{self._doc.page_style.margins.top_mm / 10:.3f}cm")
+		(width, height) = (self._doc.page_style.page_width_mm, self._doc.page_style.page_height_mm)
+		if self._doc.page_style.orientation_landscape:
+			(width, height) = (height, width)
+		page_layout_properties.setAttribute("fo:page-width", f"{width / 10:.3f}cm")
+		page_layout_properties.setAttribute("fo:page-height", f"{height / 10:.3f}cm")
+
+		master_page = self.styles_master_styles.appendChild(self.styles_document.createElement("style:master-page"))
+		master_page.setAttribute("style:name", "Default")
+		master_page.setAttribute("style:page-layout-name", page_layout_name)
+
 	def _serialize(self):
 		self._serialize_metadata()
 		self._serialize_conditional_formatting_styles(self._doc.sheets)
 		self._serialize_default_styles()
+		self._serialize_page_style()
 		for sheet in self._doc.sheets:
 			self._serialize_sheet(sheet)
 		self._serialize_database_ranges(self._doc.sheets)

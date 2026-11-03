@@ -137,3 +137,34 @@ class ColStyle():
 @dataclasses.dataclass(eq = True, frozen = True)
 class DataTable():
 	cell_range: "CellRange"
+
+@dataclasses.dataclass(eq = True, frozen = True)
+class PageMargin():
+	left_mm: float = 20
+	right_mm: float = 20
+	top_mm: float = 20
+	bottom_mm: float = 20
+
+@dataclasses.dataclass(eq = True, frozen = True)
+class PageStyle():
+	PAGE_SIZES = {
+	    "A2": (420, 594),
+	    "A3": (297, 420),
+		"A4": (210, 297),
+	    "A5": (148, 210),
+		"A6": (105, 148),
+		"Letter": (215.9, 279.4),
+	}
+
+	page_size: dataclasses.InitVar[str] = "A4"
+	page_width_mm: float = None
+	page_height_mm: float = None
+	orientation_landscape: bool = False
+	margins: PageMargin = PageMargin()
+
+	def __post_init__(self, page_size: str):
+		(page_width_mm, page_height_mm) = self.PAGE_SIZES[page_size]
+		if self.page_width_mm is None:
+			object.__setattr__(self, "page_width_mm", page_width_mm)
+		if self.page_height_mm is None:
+			object.__setattr__(self, "page_height_mm", page_height_mm)

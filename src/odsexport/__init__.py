@@ -40,7 +40,7 @@ in the odsexport documentation at https://github.com/johndoe31415/odsexport
 """
 
 from .Enums import HAlign, VAlign, ConditionType
-from .Style import Font, DataStyleNumber, DataStylePercent, DataStyleDateTime, CellStyle, RowStyle, ColStyle, BorderStyle, LineStyle, ConditionalFormat, FormatCondition, DataTable
+from .Style import Font, DataStyleNumber, DataStylePercent, DataStyleDateTime, CellStyle, RowStyle, ColStyle, BorderStyle, LineStyle, ConditionalFormat, FormatCondition, DataTable, PageMargin, PageStyle
 from .Formula import Expression, CellRef, Function
 from .CellRange import CellRange
 from .ODSDocument import ODSDocument

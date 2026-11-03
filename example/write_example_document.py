@@ -287,6 +287,7 @@ def create_data_table(doc):
 	writer.writerow([ "Max:", data_range.max() ])
 
 doc = odsexport.ODSDocument()
+doc.page_style = odsexport.PageStyle(page_size = "Letter", orientation_landscape = True)
 reference_cell = create_format_sheet(doc)
 create_formula_sheet(doc, reference_cell)
 create_conditional_formatting_sheet(doc)

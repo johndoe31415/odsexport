@@ -1,5 +1,5 @@
 #	odsexport - Python-native ODS writer library
-#	Copyright (C) 2024-2025 Johannes Bauer
+#	Copyright (C) 2024-2026 Johannes Bauer
 #
 #	This file is part of odsexport.
 #
@@ -24,14 +24,25 @@ import collections
 from .Sheet import Sheet
 from .ODSWriter import ODSWriter
 from .Exceptions import DuplicateNameException
+from .Style import PageStyle
 
 class ODSDocument():
 	def __init__(self):
 		self._sheets = collections.OrderedDict()
+		self._page_style = None
 
 	@property
 	def sheets(self):
 		return iter(self._sheets.values())
+
+	@property
+	def page_style(self):
+		return self._page_style
+
+	@page_style.setter
+	def page_style(self, value: PageStyle | None):
+		assert((value is None) or isinstance(value, PageStyle))
+		self._page_style = value
 
 	def new_sheet(self, sheet_name: str):
 		if sheet_name in self._sheets:
